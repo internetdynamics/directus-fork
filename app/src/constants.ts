@@ -70,6 +70,11 @@ export const MODULE_BAR_DEFAULT = [
 		enabled: true,
 		locked: true,
 	},
+	{
+		type: 'module',
+		id: 'website',
+		enabled: true,
+	},
 ];
 
 export const FIELD_TYPES_SELECT: Array<{ value: Type; text: string } | { divider: true }> = [
