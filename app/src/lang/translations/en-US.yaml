@@ -20,6 +20,9 @@
 # 'SIMD', 'ArrayBuffer', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect',
 # 'Proxy', 'Intl'
 
+# Custom Translation Strings
+website: Website
+
 identifier: Identifier
 avatar: Avatar
 application: Application

@@ -140,7 +140,8 @@ const appAccess = computed(() => {
 
 const notificationsPreviewActive = ref(false);
 
-const { sidebarOpen, fullScreen } = storeToRefs(appStore);
+let { sidebarOpen, fullScreen } = storeToRefs(appStore);
+sidebarOpen.value = false;
 
 const theme = computed(() => {
 	return userStore.currentUser?.theme || 'auto';
