@@ -290,7 +290,7 @@ import { usePermissionsStore } from '@/stores/permissions';
 import { useUserStore } from '@/stores/user';
 import DrawerBatch from '@/views/private/components/drawer-batch.vue';
 import { unexpectedError } from '@/utils/unexpected-error';
-import { getLayouts } from '@/data-layouts';
+import { getLayouts } from '@/layouts';
 import { mergeFilters } from '@directus/shared/utils';
 import { Filter } from '@directus/shared/types';
 

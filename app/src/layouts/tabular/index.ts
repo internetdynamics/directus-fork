@@ -313,7 +313,16 @@ export default defineLayout<LayoutOptions, LayoutQuery>({
 						selection.value = selection.value.filter((item) => item !== primaryKey);
 					}
 				} else {
-					const next = router.resolve(`/content/${collection.value}/${encodeURIComponent(primaryKey)}`);
+					let module = 'content';
+					let target: any = event?.target || {};
+					if (target.baseURI) {
+						let baseURI = target.baseURI;
+						let matches: string[];
+						if ((matches = baseURI.match(/\/(admin|app)\/([a-z]+)\//))) {
+							module = matches[2];
+						}
+					}
+					const next = router.resolve(`/${module}/${collection.value}/${encodeURIComponent(primaryKey)}`);
 
 					if (event.ctrlKey || event.metaKey) window.open(next.href, '_blank');
 					else router.push(next);
