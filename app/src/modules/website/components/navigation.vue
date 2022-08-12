@@ -63,7 +63,7 @@ export default defineComponent({
 
 		const rootItems = computed(() => {
 			const shownCollections = showHidden.value ? collectionsStore.allCollections : collectionsStore.visibleCollections;
-			console.log('XXX shownCollections', shownCollections);
+			// console.log('XXX shownCollections', shownCollections);
 
 			let collections = [];
 			for (let i = shownCollections.length - 1; i >= 0; i--) {
