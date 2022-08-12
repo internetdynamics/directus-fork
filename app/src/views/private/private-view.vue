@@ -11,7 +11,8 @@
 		<aside id="navigation" role="navigation" aria-label="Module Navigation" :class="{ 'is-open': navOpen }">
 			<module-bar />
 			<div ref="moduleNavEl" class="module-nav alt-colors">
-				<project-info />
+				<!-- <project-info /> -->
+				<group-select />
 
 				<div class="module-nav-content">
 					<slot name="navigation" />
@@ -93,6 +94,7 @@ import NotificationsDrawer from './components/notifications-drawer.vue';
 import NotificationsGroup from './components/notifications-group.vue';
 import NotificationsPreview from './components/notifications-preview.vue';
 import ProjectInfo from './components/project-info.vue';
+import GroupSelect from './components/group-select.vue';
 import SidebarDetailGroup from './components/sidebar-detail-group.vue';
 
 interface Props {
