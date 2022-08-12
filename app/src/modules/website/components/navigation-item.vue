@@ -17,13 +17,13 @@
 				:color="collection.meta?.color"
 			/>
 		</template>
-		<!-- <navigation-item
+		<navigation-item
 			v-for="childCollection in childCollections"
 			:key="childCollection.collection"
 			:show-hidden="showHidden"
 			:collection="childCollection"
 			:search="search"
-		/> -->
+		/>
 		<navigation-bookmark v-for="bookmark in childBookmarks" :key="bookmark.id" :bookmark="bookmark" />
 	</v-list-group>
 
@@ -43,7 +43,7 @@
 		/>
 	</v-list-item>
 
-	<v-menu v-if="hasContextMenu" ref="contextMenu" show-arrow placement="bottom-start">
+	<!-- <v-menu v-if="hasContextMenu" ref="contextMenu" show-arrow placement="bottom-start">
 		<v-list>
 			<v-list-item v-if="isAdmin" clickable :to="`/settings/data-model/${collection.collection}`">
 				<v-list-item-icon>
@@ -54,7 +54,7 @@
 				</v-list-item-content>
 			</v-list-item>
 		</v-list>
-	</v-menu>
+	</v-menu> -->
 </template>
 
 <script lang="ts">
@@ -155,15 +155,15 @@ export default defineComponent({
 
 		function getChildBookmarks(collection: Collection) {
 			let bookmarks: any = [];
-			if (collection.collection === 'ws_website') {
-				bookmarks = presetsStore.bookmarks.filter((bookmark) => {
-					return bookmark.collection === collection.collection && bookmark.bookmark === 'Website';
-				});
-			} else if (collection.collection === 'ws_page') {
-				bookmarks = presetsStore.bookmarks.filter((bookmark) => {
-					return bookmark.collection === collection.collection && bookmark.bookmark === 'Website Page';
-				});
-			}
+			// if (collection.collection === 'ws_website') {
+			// 	bookmarks = presetsStore.bookmarks.filter((bookmark) => {
+			// 		return bookmark.collection === collection.collection && bookmark.bookmark === 'Website';
+			// 	});
+			// } else if (collection.collection === 'ws_page') {
+			// 	bookmarks = presetsStore.bookmarks.filter((bookmark) => {
+			// 		return bookmark.collection === collection.collection && bookmark.bookmark === 'Website Page';
+			// 	});
+			// }
 			return bookmarks;
 			// return presetsStore.bookmarks.filter((bookmark) => bookmark.collection === collection.collection);
 		}

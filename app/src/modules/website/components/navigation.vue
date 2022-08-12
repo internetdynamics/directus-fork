@@ -22,7 +22,7 @@
 				:search="search"
 			/>
 
-			<v-menu v-if="hasHiddenCollections" ref="contextMenu" show-arrow placement="bottom-start">
+			<!-- <v-menu v-if="hasHiddenCollections" ref="contextMenu" show-arrow placement="bottom-start">
 				<v-list-item clickable @click="showHidden = !showHidden">
 					<v-list-item-icon>
 						<v-icon :name="showHidden ? 'visibility_off' : 'visibility'" />
@@ -31,7 +31,31 @@
 						<v-text-overflow :text="showHidden ? t('hide_hidden_collections') : t('show_hidden_collections')" />
 					</v-list-item-content>
 				</v-list-item>
-			</v-menu>
+			</v-menu> -->
+
+			<v-divider />
+
+			<v-list-item to="/files/all">
+				<v-list-item-icon><v-icon name="file_copy" outline /></v-list-item-icon>
+				<v-list-item-content>
+					<v-text-overflow :text="t('all_files')" />
+				</v-list-item-content>
+			</v-list-item>
+
+			<v-list-item to="/files/mine">
+				<v-list-item-icon><v-icon name="folder_shared" /></v-list-item-icon>
+				<v-list-item-content>
+					<v-text-overflow :text="t('my_files')" />
+				</v-list-item-content>
+			</v-list-item>
+
+			<v-list-item to="/files/recent">
+				<v-list-item-icon><v-icon name="history" /></v-list-item-icon>
+				<v-list-item-content>
+					<v-text-overflow :text="t('recent_files')" />
+				</v-list-item-content>
+			</v-list-item>
+
 		</v-list>
 	</div>
 </template>
@@ -68,7 +92,12 @@ export default defineComponent({
 			let collections = [];
 			for (let i = shownCollections.length - 1; i >= 0; i--) {
 				let collection = shownCollections[i];
-				if (collection.collection === 'ws_website' || collection.collection === 'ws_page') {
+				if (collection.collection === 'ws_website') {
+					collection.name = "Website";
+					collections.push(collection);
+				}
+				else if (collection.collection === 'ws_page') {
+					collection.name = "Website Page";
 					collections.push(collection);
 				}
 			}
