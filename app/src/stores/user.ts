@@ -48,6 +48,7 @@ export const useUserStore = defineStore({
 					'role.app_access',
 					'role.id',
 					'role.enforce_tfa',
+					'currentGroupId',
 				];
 
 				const { data } = await api.get(`/users/me`, { params: { fields } });

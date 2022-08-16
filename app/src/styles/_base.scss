@@ -150,3 +150,12 @@ input[type='search']::-webkit-search-results-button,
 input[type='search']::-webkit-search-results-decoration {
 	-webkit-appearance: none;
 }
+
+.vs__open-indicator {
+	cursor: pointer;
+	fill: #6a42fa !important;
+}
+
+.vs__clear {
+	fill: #6a42fa !important;
+}

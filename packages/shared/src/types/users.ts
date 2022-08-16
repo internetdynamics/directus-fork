@@ -37,4 +37,5 @@ export type User = {
 	company: string | null;
 	title: string | null;
 	email_notifications: boolean;
+	currentGroupId?: number;
 };
