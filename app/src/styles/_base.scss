@@ -159,3 +159,8 @@ input[type='search']::-webkit-search-results-decoration {
 .vs__clear {
 	fill: #6a42fa !important;
 }
+
+.private-view #navigation .module-nav {
+	width: 280px;
+	min-width: 280px;
+}

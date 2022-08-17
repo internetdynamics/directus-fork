@@ -11,7 +11,7 @@
 			<v-text-overflow :text="name" />
 		</v-list-item-content>
 
-		<!-- <v-menu placement="bottom-start" show-arrow>
+		<v-menu placement="bottom-start" show-arrow>
 			<template #activator="{ toggle }">
 				<v-icon
 					v-tooltip.bottom="!hasPermission && t(`cannot_edit_${scope}_bookmarks`)"
@@ -81,7 +81,7 @@
 					</v-button>
 				</v-card-actions>
 			</v-card>
-		</v-dialog> -->
+		</v-dialog>
 	</v-list-item>
 </template>
 

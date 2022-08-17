@@ -6,6 +6,7 @@
 			v-model="groupId"
 			:options="groups"
 			placeholder="Search..."
+			class="vc__truncate"
 		></v-select>
 	</div>
 </template>
@@ -29,32 +30,43 @@ export default defineComponent({
 	components: { vSelect },
 	data() {
 		return {
-			groupId: null,
+			groupId: this.groupId,
 			groups: [] as GroupData[],
 		};
 	},
 	setup() {},
 	watch: {
-		groupId(newGroupId, oldGroupId) {
+		groupId(newGroupId) {
 			this.changeGroup(newGroupId);
 		},
 	},
 	methods: {
 		async changeGroup(groupId: number) {
+			const userStore = useUserStore();
+			const currentGroupId = (userStore.currentUser as User)?.currentGroupId;
+
+			if (groupId && groupId !== currentGroupId) {
+				window.location.reload();
+			}
+
 			await api.patch(`/users/me`, {
 				currentGroupId: groupId,
 			});
-			const userStore = useUserStore();
+
 			userStore.hydrate();
 		},
 	},
+
 	mounted() {
 		const userStore = useUserStore();
 		const currentGroupId = (userStore.currentUser as User)?.currentGroupId;
 
 		api.get('/items/group').then((res) => {
 			for (let group of res.data.data) {
-				this.groups.push({ groupId: group.id, groupLabel: group.groupDisplayName + ' (' + group.groupname + ')' });
+				this.groups.push({
+					groupId: group.id,
+					groupLabel: group.groupDisplayName + ' (' + group.groupname + ')',
+				});
 			}
 
 			let groupId: any = currentGroupId;
