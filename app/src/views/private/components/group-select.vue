@@ -46,14 +46,13 @@ export default defineComponent({
 			const currentGroupId = (userStore.currentUser as User)?.currentGroupId;
 
 			if (groupId && groupId !== currentGroupId) {
+				await api.patch(`/users/me`, {
+					currentGroupId: groupId,
+				});
+
+				userStore.hydrate();
 				window.location.reload();
 			}
-
-			await api.patch(`/users/me`, {
-				currentGroupId: groupId,
-			});
-
-			userStore.hydrate();
 		},
 	},
 
