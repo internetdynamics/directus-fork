@@ -76,10 +76,17 @@ const getArchiveValue = (query: LocationQuery) => {
 	}
 };
 
+// ICONS
+// website: cloudy
+// learn: school
+// teach: record_voice_over
+// community: groups
+// media: perm_media
+
 export default defineModule({
 	id: 'website',
 	name: '$t:website',
-	icon: 'box',
+	icon: 'cloudy',
 	routes: [
 		{
 			name: 'website-no-collections',
