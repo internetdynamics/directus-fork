@@ -1,347 +1,351 @@
-import { Knex } from 'knex';
-import { merge } from 'lodash';
-import { nanoid } from 'nanoid';
-import os from 'os';
-import { performance } from 'perf_hooks';
+import { Knex } from "knex";
+import { merge } from "lodash";
+import { nanoid } from "nanoid";
+import os from "os";
+import { performance } from "perf_hooks";
 // @ts-ignore
-import { version } from '../../package.json';
-import { getCache } from '../cache';
-import getDatabase, { hasDatabaseConnection } from '../database';
-import env from '../env';
-import logger from '../logger';
-import { rateLimiter } from '../middleware/rate-limiter';
-import storage from '../storage';
-import { AbstractServiceOptions } from '../types';
-import { Accountability, SchemaOverview } from '@directus/shared/types';
-import { toArray } from '@directus/shared/utils';
-import getMailer from '../mailer';
-import { SettingsService } from './settings';
-import { getOSInfo } from '../utils/get-os-info';
+import { version } from "../../package.json";
+import { getCache } from "../cache";
+import getDatabase, { hasDatabaseConnection } from "../database";
+import env from "../env";
+import logger from "../logger";
+import { rateLimiter } from "../middleware/rate-limiter";
+import storage from "../storage";
+import { AbstractServiceOptions } from "../types";
+import { Accountability, SchemaOverview } from "@directus/shared/types";
+import { toArray } from "@directus/shared/utils";
+import getMailer from "../mailer";
+import { SettingsService } from "./settings";
+import { getOSInfo } from "../utils/get-os-info";
 
 export class ServerService {
-	knex: Knex;
-	accountability: Accountability | null;
-	settingsService: SettingsService;
-	schema: SchemaOverview;
+  knex: Knex;
+  accountability: Accountability | null;
+  settingsService: SettingsService;
+  schema: SchemaOverview;
 
-	constructor(options: AbstractServiceOptions) {
-		this.knex = options.knex || getDatabase();
-		this.accountability = options.accountability || null;
-		this.schema = options.schema;
-		this.settingsService = new SettingsService({ knex: this.knex, schema: this.schema });
-	}
+  constructor(options: AbstractServiceOptions) {
+    this.knex = options.knex || getDatabase();
+    this.accountability = options.accountability || null;
+    this.schema = options.schema;
+    this.settingsService = new SettingsService({ knex: this.knex, schema: this.schema });
+  }
 
-	async serverInfo(): Promise<Record<string, any>> {
-		const info: Record<string, any> = {};
+  async serverInfo(): Promise<Record<string, any>> {
+    const info: Record<string, any> = {};
 
-		const projectInfo = await this.settingsService.readSingleton({
-			fields: [
-				'project_name',
-				'project_descriptor',
-				'project_logo',
-				'project_color',
-				'default_language',
-				'public_foreground',
-				'public_background',
-				'public_note',
-				'custom_css',
-			],
-		});
+    const projectInfo = await this.settingsService.readSingleton({
+      fields: [
+        "project_name",
+        "project_descriptor",
+        "project_logo",
+        "project_color",
+        "default_language",
+        "public_foreground",
+        "public_background",
+        "public_note",
+        "custom_css",
+      ],
+    });
 
-		info.project = projectInfo;
+    info.project = projectInfo;
 
-		if (this.accountability?.user) {
-			if (env.RATE_LIMITER_ENABLED) {
-				info.rateLimit = {
-					points: env.RATE_LIMITER_POINTS,
-					duration: env.RATE_LIMITER_DURATION,
-				};
-			} else {
-				info.rateLimit = false;
-			}
-		}
+    if (this.accountability?.user) {
+      if (env.RATE_LIMITER_ENABLED) {
+        info.rateLimit = {
+          points: env.RATE_LIMITER_POINTS,
+          duration: env.RATE_LIMITER_DURATION,
+        };
+      } else {
+        info.rateLimit = false;
+      }
 
-		if (this.accountability?.admin === true) {
-			const { osType, osVersion } = getOSInfo();
+      info.flows = {
+        execAllowedModules: env.FLOWS_EXEC_ALLOWED_MODULES ? toArray(env.FLOWS_EXEC_ALLOWED_MODULES) : [],
+      };
+    }
 
-			info.directus = {
-				version,
-			};
+    if (this.accountability?.admin === true) {
+      const { osType, osVersion } = getOSInfo();
 
-			info.node = {
-				version: process.versions.node,
-				uptime: Math.round(process.uptime()),
-			};
+      info.directus = {
+        version,
+      };
 
-			info.os = {
-				type: osType,
-				version: osVersion,
-				uptime: Math.round(os.uptime()),
-				totalmem: os.totalmem(),
-			};
-		}
+      info.node = {
+        version: process.versions.node,
+        uptime: Math.round(process.uptime()),
+      };
 
-		return info;
-	}
+      info.os = {
+        type: osType,
+        version: osVersion,
+        uptime: Math.round(os.uptime()),
+        totalmem: os.totalmem(),
+      };
+    }
 
-	async health(): Promise<Record<string, any>> {
-		const checkID = nanoid(5);
+    return info;
+  }
 
-		// Based on https://tools.ietf.org/id/draft-inadarei-api-health-check-05.html#name-componenttype
-		type HealthData = {
-			status: 'ok' | 'warn' | 'error';
-			releaseId: string;
-			serviceId: string;
-			checks: {
-				[service: string]: HealthCheck[];
-			};
-		};
+  async health(): Promise<Record<string, any>> {
+    const checkID = nanoid(5);
 
-		type HealthCheck = {
-			componentType: 'system' | 'datastore' | 'objectstore' | 'email' | 'cache' | 'ratelimiter';
-			observedValue?: number | string | boolean;
-			observedUnit?: string;
-			status: 'ok' | 'warn' | 'error';
-			output?: any;
-			threshold?: number;
-		};
+    // Based on https://tools.ietf.org/id/draft-inadarei-api-health-check-05.html#name-componenttype
+    type HealthData = {
+      status: "ok" | "warn" | "error";
+      releaseId: string;
+      serviceId: string;
+      checks: {
+        [service: string]: HealthCheck[];
+      };
+    };
 
-		const data: HealthData = {
-			status: 'ok',
-			releaseId: version,
-			serviceId: env.KEY,
-			checks: merge(
-				...(await Promise.all([testDatabase(), testCache(), testRateLimiter(), testStorage(), testEmail()]))
-			),
-		};
+    type HealthCheck = {
+      componentType: "system" | "datastore" | "objectstore" | "email" | "cache" | "ratelimiter";
+      observedValue?: number | string | boolean;
+      observedUnit?: string;
+      status: "ok" | "warn" | "error";
+      output?: any;
+      threshold?: number;
+    };
 
-		for (const [service, healthData] of Object.entries(data.checks)) {
-			for (const healthCheck of healthData) {
-				if (healthCheck.status === 'warn' && data.status === 'ok') {
-					logger.warn(
-						`${service} in WARN state, the observed value ${healthCheck.observedValue} is above the threshold of ${healthCheck.threshold}${healthCheck.observedUnit}`
-					);
-					data.status = 'warn';
-					continue;
-				}
+    const data: HealthData = {
+      status: "ok",
+      releaseId: version,
+      serviceId: env.KEY,
+      checks: merge(
+        ...(await Promise.all([testDatabase(), testCache(), testRateLimiter(), testStorage(), testEmail()]))
+      ),
+    };
 
-				if (healthCheck.status === 'error' && (data.status === 'ok' || data.status === 'warn')) {
-					logger.error(healthCheck.output, '%s in ERROR state', service);
-					data.status = 'error';
-					break;
-				}
-			}
+    for (const [service, healthData] of Object.entries(data.checks)) {
+      for (const healthCheck of healthData) {
+        if (healthCheck.status === "warn" && data.status === "ok") {
+          logger.warn(
+            `${service} in WARN state, the observed value ${healthCheck.observedValue} is above the threshold of ${healthCheck.threshold}${healthCheck.observedUnit}`
+          );
+          data.status = "warn";
+          continue;
+        }
 
-			// No need to continue checking if parent status is already error
-			if (data.status === 'error') break;
-		}
+        if (healthCheck.status === "error" && (data.status === "ok" || data.status === "warn")) {
+          logger.error(healthCheck.output, "%s in ERROR state", service);
+          data.status = "error";
+          break;
+        }
+      }
 
-		if (this.accountability?.admin !== true) {
-			return { status: data.status };
-		} else {
-			return data;
-		}
+      // No need to continue checking if parent status is already error
+      if (data.status === "error") break;
+    }
 
-		async function testDatabase(): Promise<Record<string, HealthCheck[]>> {
-			const database = getDatabase();
-			const client = env.DB_CLIENT;
+    if (this.accountability?.admin !== true) {
+      return { status: data.status };
+    } else {
+      return data;
+    }
 
-			const checks: Record<string, HealthCheck[]> = {};
+    async function testDatabase(): Promise<Record<string, HealthCheck[]>> {
+      const database = getDatabase();
+      const client = env.DB_CLIENT;
 
-			// Response time
-			// ----------------------------------------------------------------------------------------
-			checks[`${client}:responseTime`] = [
-				{
-					status: 'ok',
-					componentType: 'datastore',
-					observedUnit: 'ms',
-					observedValue: 0,
-					threshold: 150,
-				},
-			];
+      const checks: Record<string, HealthCheck[]> = {};
 
-			const startTime = performance.now();
+      // Response time
+      // ----------------------------------------------------------------------------------------
+      checks[`${client}:responseTime`] = [
+        {
+          status: "ok",
+          componentType: "datastore",
+          observedUnit: "ms",
+          observedValue: 0,
+          threshold: 150,
+        },
+      ];
 
-			if (await hasDatabaseConnection()) {
-				checks[`${client}:responseTime`][0].status = 'ok';
-			} else {
-				checks[`${client}:responseTime`][0].status = 'error';
-				checks[`${client}:responseTime`][0].output = `Can't connect to the database.`;
-			}
+      const startTime = performance.now();
 
-			const endTime = performance.now();
-			checks[`${client}:responseTime`][0].observedValue = +(endTime - startTime).toFixed(3);
+      if (await hasDatabaseConnection()) {
+        checks[`${client}:responseTime`][0].status = "ok";
+      } else {
+        checks[`${client}:responseTime`][0].status = "error";
+        checks[`${client}:responseTime`][0].output = `Can't connect to the database.`;
+      }
 
-			if (
-				checks[`${client}:responseTime`][0].observedValue! > checks[`${client}:responseTime`][0].threshold! &&
-				checks[`${client}:responseTime`][0].status !== 'error'
-			) {
-				checks[`${client}:responseTime`][0].status = 'warn';
-			}
+      const endTime = performance.now();
+      checks[`${client}:responseTime`][0].observedValue = +(endTime - startTime).toFixed(3);
 
-			checks[`${client}:connectionsAvailable`] = [
-				{
-					status: 'ok',
-					componentType: 'datastore',
-					observedValue: database.client.pool.numFree(),
-				},
-			];
+      if (
+        checks[`${client}:responseTime`][0].observedValue! > checks[`${client}:responseTime`][0].threshold! &&
+        checks[`${client}:responseTime`][0].status !== "error"
+      ) {
+        checks[`${client}:responseTime`][0].status = "warn";
+      }
 
-			checks[`${client}:connectionsUsed`] = [
-				{
-					status: 'ok',
-					componentType: 'datastore',
-					observedValue: database.client.pool.numUsed(),
-				},
-			];
+      checks[`${client}:connectionsAvailable`] = [
+        {
+          status: "ok",
+          componentType: "datastore",
+          observedValue: database.client.pool.numFree(),
+        },
+      ];
 
-			return checks;
-		}
+      checks[`${client}:connectionsUsed`] = [
+        {
+          status: "ok",
+          componentType: "datastore",
+          observedValue: database.client.pool.numUsed(),
+        },
+      ];
 
-		async function testCache(): Promise<Record<string, HealthCheck[]>> {
-			if (env.CACHE_ENABLED !== true) {
-				return {};
-			}
+      return checks;
+    }
 
-			const { cache } = getCache();
+    async function testCache(): Promise<Record<string, HealthCheck[]>> {
+      if (env.CACHE_ENABLED !== true) {
+        return {};
+      }
 
-			const checks: Record<string, HealthCheck[]> = {
-				'cache:responseTime': [
-					{
-						status: 'ok',
-						componentType: 'cache',
-						observedValue: 0,
-						observedUnit: 'ms',
-						threshold: 150,
-					},
-				],
-			};
+      const { cache } = getCache();
 
-			const startTime = performance.now();
+      const checks: Record<string, HealthCheck[]> = {
+        "cache:responseTime": [
+          {
+            status: "ok",
+            componentType: "cache",
+            observedValue: 0,
+            observedUnit: "ms",
+            threshold: 150,
+          },
+        ],
+      };
 
-			try {
-				await cache!.set(`health-${checkID}`, true, 5);
-				await cache!.delete(`health-${checkID}`);
-			} catch (err: any) {
-				checks['cache:responseTime'][0].status = 'error';
-				checks['cache:responseTime'][0].output = err;
-			} finally {
-				const endTime = performance.now();
-				checks['cache:responseTime'][0].observedValue = +(endTime - startTime).toFixed(3);
+      const startTime = performance.now();
 
-				if (
-					checks['cache:responseTime'][0].observedValue > checks['cache:responseTime'][0].threshold! &&
-					checks['cache:responseTime'][0].status !== 'error'
-				) {
-					checks['cache:responseTime'][0].status = 'warn';
-				}
-			}
+      try {
+        await cache!.set(`health-${checkID}`, true, 5);
+        await cache!.delete(`health-${checkID}`);
+      } catch (err: any) {
+        checks["cache:responseTime"][0].status = "error";
+        checks["cache:responseTime"][0].output = err;
+      } finally {
+        const endTime = performance.now();
+        checks["cache:responseTime"][0].observedValue = +(endTime - startTime).toFixed(3);
 
-			return checks;
-		}
+        if (
+          checks["cache:responseTime"][0].observedValue > checks["cache:responseTime"][0].threshold! &&
+          checks["cache:responseTime"][0].status !== "error"
+        ) {
+          checks["cache:responseTime"][0].status = "warn";
+        }
+      }
 
-		async function testRateLimiter(): Promise<Record<string, HealthCheck[]>> {
-			if (env.RATE_LIMITER_ENABLED !== true) {
-				return {};
-			}
+      return checks;
+    }
 
-			const checks: Record<string, HealthCheck[]> = {
-				'rateLimiter:responseTime': [
-					{
-						status: 'ok',
-						componentType: 'ratelimiter',
-						observedValue: 0,
-						observedUnit: 'ms',
-						threshold: 150,
-					},
-				],
-			};
+    async function testRateLimiter(): Promise<Record<string, HealthCheck[]>> {
+      if (env.RATE_LIMITER_ENABLED !== true) {
+        return {};
+      }
 
-			const startTime = performance.now();
+      const checks: Record<string, HealthCheck[]> = {
+        "rateLimiter:responseTime": [
+          {
+            status: "ok",
+            componentType: "ratelimiter",
+            observedValue: 0,
+            observedUnit: "ms",
+            threshold: 150,
+          },
+        ],
+      };
 
-			try {
-				await rateLimiter.consume(`health-${checkID}`, 1);
-				await rateLimiter.delete(`health-${checkID}`);
-			} catch (err: any) {
-				checks['rateLimiter:responseTime'][0].status = 'error';
-				checks['rateLimiter:responseTime'][0].output = err;
-			} finally {
-				const endTime = performance.now();
-				checks['rateLimiter:responseTime'][0].observedValue = +(endTime - startTime).toFixed(3);
+      const startTime = performance.now();
 
-				if (
-					checks['rateLimiter:responseTime'][0].observedValue > checks['rateLimiter:responseTime'][0].threshold! &&
-					checks['rateLimiter:responseTime'][0].status !== 'error'
-				) {
-					checks['rateLimiter:responseTime'][0].status = 'warn';
-				}
-			}
+      try {
+        await rateLimiter.consume(`health-${checkID}`, 1);
+        await rateLimiter.delete(`health-${checkID}`);
+      } catch (err: any) {
+        checks["rateLimiter:responseTime"][0].status = "error";
+        checks["rateLimiter:responseTime"][0].output = err;
+      } finally {
+        const endTime = performance.now();
+        checks["rateLimiter:responseTime"][0].observedValue = +(endTime - startTime).toFixed(3);
 
-			return checks;
-		}
+        if (
+          checks["rateLimiter:responseTime"][0].observedValue > checks["rateLimiter:responseTime"][0].threshold! &&
+          checks["rateLimiter:responseTime"][0].status !== "error"
+        ) {
+          checks["rateLimiter:responseTime"][0].status = "warn";
+        }
+      }
 
-		async function testStorage(): Promise<Record<string, HealthCheck[]>> {
-			const checks: Record<string, HealthCheck[]> = {};
+      return checks;
+    }
 
-			for (const location of toArray(env.STORAGE_LOCATIONS)) {
-				const disk = storage.disk(location);
+    async function testStorage(): Promise<Record<string, HealthCheck[]>> {
+      const checks: Record<string, HealthCheck[]> = {};
 
-				checks[`storage:${location}:responseTime`] = [
-					{
-						status: 'ok',
-						componentType: 'objectstore',
-						observedValue: 0,
-						observedUnit: 'ms',
-						threshold: 750,
-					},
-				];
+      for (const location of toArray(env.STORAGE_LOCATIONS)) {
+        const disk = storage.disk(location);
 
-				const startTime = performance.now();
+        checks[`storage:${location}:responseTime`] = [
+          {
+            status: "ok",
+            componentType: "objectstore",
+            observedValue: 0,
+            observedUnit: "ms",
+            threshold: 750,
+          },
+        ];
 
-				try {
-					await disk.put(`health-${checkID}`, 'check');
-					await disk.get(`health-${checkID}`);
-					await disk.delete(`health-${checkID}`);
-				} catch (err: any) {
-					checks[`storage:${location}:responseTime`][0].status = 'error';
-					checks[`storage:${location}:responseTime`][0].output = err;
-				} finally {
-					const endTime = performance.now();
-					checks[`storage:${location}:responseTime`][0].observedValue = +(endTime - startTime).toFixed(3);
+        const startTime = performance.now();
 
-					if (
-						checks[`storage:${location}:responseTime`][0].observedValue! >
-							checks[`storage:${location}:responseTime`][0].threshold! &&
-						checks[`storage:${location}:responseTime`][0].status !== 'error'
-					) {
-						checks[`storage:${location}:responseTime`][0].status = 'warn';
-					}
-				}
-			}
+        try {
+          await disk.put(`health-${checkID}`, "check");
+          await disk.get(`health-${checkID}`);
+          await disk.delete(`health-${checkID}`);
+        } catch (err: any) {
+          checks[`storage:${location}:responseTime`][0].status = "error";
+          checks[`storage:${location}:responseTime`][0].output = err;
+        } finally {
+          const endTime = performance.now();
+          checks[`storage:${location}:responseTime`][0].observedValue = +(endTime - startTime).toFixed(3);
 
-			return checks;
-		}
+          if (
+            checks[`storage:${location}:responseTime`][0].observedValue! >
+              checks[`storage:${location}:responseTime`][0].threshold! &&
+            checks[`storage:${location}:responseTime`][0].status !== "error"
+          ) {
+            checks[`storage:${location}:responseTime`][0].status = "warn";
+          }
+        }
+      }
 
-		async function testEmail(): Promise<Record<string, HealthCheck[]>> {
-			const checks: Record<string, HealthCheck[]> = {
-				'email:connection': [
-					{
-						status: 'ok',
-						componentType: 'email',
-					},
-				],
-			};
+      return checks;
+    }
 
-			const mailer = getMailer();
+    async function testEmail(): Promise<Record<string, HealthCheck[]>> {
+      const checks: Record<string, HealthCheck[]> = {
+        "email:connection": [
+          {
+            status: "ok",
+            componentType: "email",
+          },
+        ],
+      };
 
-			try {
-				await mailer.verify();
-			} catch (err: any) {
-				checks['email:connection'][0].status = 'error';
-				checks['email:connection'][0].output = err;
-			}
+      const mailer = getMailer();
 
-			return checks;
-		}
-	}
+      try {
+        await mailer.verify();
+      } catch (err: any) {
+        checks["email:connection"][0].status = "error";
+        checks["email:connection"][0].output = err;
+      }
+
+      return checks;
+    }
+  }
 }

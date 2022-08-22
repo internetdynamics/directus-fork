@@ -5,11 +5,17 @@
 	"workspaces": [
 		"./app",
 		"./api",
+		"./website",
 		"./packages/*"
 	],
 	"scripts": {
 		"lint": "eslint .",
 		"format": "prettier --write \"**/*.{js,ts,vue,md,yaml}\"",
+		"clean": "rm -rf api/node_modules app/node_modules website/node_modules packages/*/node_modules node_modules packages/*/dist pnpm-lock.yaml && git checkout pnpm-lock.yaml",
+		"dev": "pnpm -r dev",
+		"dev:api": "pnpm --filter directus dev",
+		"dev:app": "pnpm --filter @directus/app dev",
+		"build": "pnpm -r build",
 		"test:e2e": "jest tests -c tests/jest.config.js",
 		"test:e2e:watch": "jest tests -c tests/jest.config.js --watch",
 		"posttest:e2e:watch": "ts-node --project ./tests/tsconfig.json --transpile-only ./tests/setup/teardown.ts",
