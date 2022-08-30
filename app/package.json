@@ -23,7 +23,8 @@
 	},
 	"scripts": {
 		"dev": "vite",
-		"build": "NODE_OPTIONS='--max-old-space-size=3500' vite build",
+		"build": "vite build",
+    "prodbuild": "NODE_OPTIONS='--max-old-space-size=3500' vite build",
 		"serve": "vite preview",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",

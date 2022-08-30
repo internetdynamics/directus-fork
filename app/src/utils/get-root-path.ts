@@ -20,7 +20,7 @@ export function getPublicURL(): string {
  */
 export function extract(path: string) {
 	const parts = path.split('/');
-	const adminIndex = parts.indexOf('admin');
+	const adminIndex = parts.indexOf('app');
 	const rootPath = parts.slice(0, adminIndex).join('/') + '/';
 	return rootPath;
 }

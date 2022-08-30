@@ -136,11 +136,11 @@ export default defineConfig({
       { find: "json2csv", replacement: "json2csv/dist/json2csv.umd.js" },
     ],
   },
-  base: process.env.NODE_ENV === "production" ? "" : "/admin/",
+  base: process.env.NODE_ENV === "production" ? "" : "/app/",
   server: {
     port: 8080,
     proxy: {
-      "^/(?!admin)": {
+      "^/(?!app)": {
         target: process.env.API_URL ? process.env.API_URL : "http://localhost:8055/",
         changeOrigin: true,
       },

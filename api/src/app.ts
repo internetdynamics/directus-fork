@@ -180,7 +180,7 @@ export default async function createApp(): Promise<express.Application> {
 
   if (env.SERVE_APP) {
     const adminPath = require.resolve("@directus/app", require.main ? { paths: [require.main.filename] } : undefined);
-    const adminUrl = new Url(env.PUBLIC_URL).addPath("admin");
+    const adminUrl = new Url(env.PUBLIC_URL).addPath("app");
 
     // Set the App's base path according to the APIs public URL
     const html = await fse.readFile(adminPath, "utf8");
@@ -197,9 +197,9 @@ export default async function createApp(): Promise<express.Application> {
       res.setHeader("Vary", "Origin, Cache-Control");
     };
 
-    app.get("/admin", sendHtml);
-    app.use("/admin", express.static(path.join(adminPath, ".."), { setHeaders: setStaticHeaders }));
-    app.use("/admin/*", sendHtml);
+    app.get("/app", sendHtml);
+    app.use("/app", express.static(path.join(adminPath, ".."), { setHeaders: setStaticHeaders }));
+    app.use("/app/*", sendHtml);
   }
 
   // use the rate limiter - all routes for now
