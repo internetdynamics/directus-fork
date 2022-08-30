@@ -84,7 +84,7 @@ ${userName(sender)} has mentioned you in a comment:
 ${comment}
 
 <a href="${new Url(env.PUBLIC_URL)
-						.addPath('admin', 'content', data.collection, data.item)
+						.addPath('app', 'content', data.collection, data.item)
 						.toString()}">Click here to view.</a>
 `;
 

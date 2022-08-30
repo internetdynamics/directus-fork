@@ -297,7 +297,7 @@ export default defineLayout<LayoutOptions, LayoutQuery>({
           if (target.baseURI) {
             const baseURI = target.baseURI;
             let matches: string[];
-            if ((matches = baseURI.match(/\/(admin|app)\/([a-z]+)\//))) {
+            if ((matches = baseURI.match(/\/(app)\/([a-z]+)\//))) {
               module = matches[2];
             }
           }

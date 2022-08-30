@@ -111,7 +111,7 @@ export class MailService {
 			if (logoID) {
 				projectLogoUrl.addPath('assets', logoID);
 			} else {
-				projectLogoUrl.addPath('admin', 'img', 'directus-white.png');
+				projectLogoUrl.addPath('app', 'img', 'directus-white.png');
 			}
 
 			return projectLogoUrl.toString();

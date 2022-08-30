@@ -306,7 +306,7 @@ export class UsersService extends ItemsService {
 			const payload = { email, scope: 'invite' };
 			const token = jwt.sign(payload, env.SECRET as string, { expiresIn: '7d', issuer: 'directus' });
 			const subjectLine = subject ?? "You've been invited";
-			const inviteURL = url ? new Url(url) : new Url(env.PUBLIC_URL).addPath('admin', 'accept-invite');
+			const inviteURL = url ? new Url(url) : new Url(env.PUBLIC_URL).addPath('app', 'accept-invite');
 			inviteURL.setQuery('token', token);
 
 			// Create user first to verify uniqueness
@@ -374,7 +374,7 @@ export class UsersService extends ItemsService {
 		const token = jwt.sign(payload, env.SECRET as string, { expiresIn: '1d', issuer: 'directus' });
 		const acceptURL = url
 			? new Url(url).setQuery('token', token).toString()
-			: new Url(env.PUBLIC_URL).addPath('admin', 'reset-password').setQuery('token', token);
+			: new Url(env.PUBLIC_URL).addPath('app', 'reset-password').setQuery('token', token);
 		const subjectLine = subject ? subject : 'Password Reset Request';
 
 		await mailService.send({

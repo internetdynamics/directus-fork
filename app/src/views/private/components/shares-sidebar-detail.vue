@@ -120,7 +120,7 @@ export default defineComponent({
 
 		const sendPublicLink = computed(() => {
 			if (!shareToSend.value) return null;
-			return window.location.origin + getRootPath() + 'admin/shared/' + shareToSend.value.id;
+			return window.location.origin + getRootPath() + 'app/shared/' + shareToSend.value.id;
 		});
 
 		refresh();
@@ -169,7 +169,7 @@ export default defineComponent({
 		}
 
 		async function copy(id: string) {
-			const url = window.location.origin + getRootPath() + 'admin/shared/' + id;
+			const url = window.location.origin + getRootPath() + 'app/shared/' + id;
 			await copyToClipboard(url, { success: t('share_copy_link_success'), fail: t('share_copy_link_error') });
 		}
 

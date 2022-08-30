@@ -320,7 +320,7 @@ class ExtensionManager {
 			const depName = appDir.find((file) => depRegex.test(file));
 
 			if (depName) {
-				const depUrl = new Url(env.PUBLIC_URL).addPath('admin', 'assets', depName);
+				const depUrl = new Url(env.PUBLIC_URL).addPath('app', 'assets', depName);
 
 				depsMapping[dep] = depUrl.toString({ rootRelative: true });
 			} else {
