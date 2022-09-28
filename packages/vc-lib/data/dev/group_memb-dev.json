@@ -1,0 +1,67 @@
+[
+  {
+    "id": 4,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2022-08-29T19:13:21.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupMembPrefs": null,
+    "groupMembStatusId": null,
+    "groupRoleId": null,
+    "gid": null,
+    "uid": null
+  },
+  {
+    "id": 5,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2022-08-29T19:13:21.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupMembPrefs": null,
+    "groupMembStatusId": null,
+    "groupRoleId": null,
+    "gid": null,
+    "uid": null
+  },
+  {
+    "id": 6,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2022-08-29T19:13:21.000Z",
+    "user_updated": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_updated": "2022-08-29T19:21:54.000Z",
+    "groupMembPrefs": null,
+    "groupMembStatusId": null,
+    "groupRoleId": null,
+    "gid": null,
+    "uid": null
+  },
+  {
+    "id": 7,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2022-08-29T19:16:17.000Z",
+    "user_updated": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_updated": "2022-08-29T19:21:54.000Z",
+    "groupMembPrefs": null,
+    "groupMembStatusId": null,
+    "groupRoleId": null,
+    "gid": null,
+    "uid": null
+  },
+  {
+    "id": 8,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2022-08-29T19:21:54.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupMembPrefs": null,
+    "groupMembStatusId": null,
+    "groupRoleId": null,
+    "gid": null,
+    "uid": null
+  }
+]

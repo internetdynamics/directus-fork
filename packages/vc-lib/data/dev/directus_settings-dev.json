@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "project_name": "Virtual Christianity",
+    "project_url": "http://localhost:8055",
+    "project_color": "#010B19",
+    "project_logo": "c1dea998-947d-46c9-9e94-5b93a12095e9",
+    "public_foreground": null,
+    "public_background": null,
+    "public_note": null,
+    "auth_login_attempts": 25,
+    "auth_password_policy": null,
+    "storage_asset_transform": "all",
+    "storage_asset_presets": null,
+    "custom_css": null,
+    "storage_default_folder": null,
+    "basemaps": null,
+    "mapbox_key": null,
+    "module_bar": "[{\"type\":\"module\",\"id\":\"website\",\"enabled\":true},{\"type\":\"module\",\"id\":\"content\",\"enabled\":true},{\"type\":\"module\",\"id\":\"users\",\"enabled\":true},{\"type\":\"module\",\"id\":\"files\",\"enabled\":true},{\"type\":\"module\",\"id\":\"insights\",\"enabled\":true},{\"type\":\"module\",\"id\":\"docs\",\"enabled\":true},{\"type\":\"module\",\"id\":\"settings\",\"enabled\":true,\"locked\":true}]",
+    "project_descriptor": "Virtual Christianity",
+    "translation_strings": null,
+    "default_language": "en-US",
+    "custom_aspect_ratios": null
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "status": "published",
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2022-08-12T20:01:47.000Z",
+    "user_updated": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_updated": "2022-08-29T19:21:54.000Z",
+    "groupname": "vc",
+    "groupDisplayName": "Virtual Christianity",
+    "groupDescription": "This is Virtual Christianity",
+    "groupPrefs": null,
+    "defaultGroupRoleId": null,
+    "groupTypeId": null
+  },
+  {
+    "id": 2,
+    "status": "published",
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2022-08-12T20:04:19.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupname": "id",
+    "groupDisplayName": "Internet Dynamics",
+    "groupDescription": "This is Internet Dynamics",
+    "groupPrefs": null,
+    "defaultGroupRoleId": null,
+    "groupTypeId": null
+  },
+  {
+    "id": 3,
+    "status": "published",
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2022-08-12T20:04:58.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupname": "dw205",
+    "groupDisplayName": "Deep Waters 205",
+    "groupDescription": "This is Deep Waters 205",
+    "groupPrefs": null,
+    "defaultGroupRoleId": null,
+    "groupTypeId": null
+  }
+]

@@ -174,7 +174,7 @@ export async function getServerSideProps(context) {
   let props = {};
   let req = context.req;
   vcWebsite.getWebPageDataFromRequest(props, req);
-  await vcWebsite.getWebPageDataFromDatabase(props, props.pageHostPath);
+  await vcWebsite.getWebPageDataFromDB("prisma", props, props.pageHostPath);
   return { props: props };
 }
 

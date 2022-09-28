@@ -139,93 +139,91 @@ export default async function createApp(): Promise<express.Application> {
 
   app.use(expressLogger);
 
-  app.use((req, res, next) => {
-    (
-      express.json({
-        limit: env.MAX_PAYLOAD_SIZE,
-      }) as RequestHandler
-    )(req, res, (err: any) => {
-      if (err) {
-        return next(new InvalidPayloadException(err.message));
-      }
+	app.use((_req, res, next) => {
+		res.setHeader('X-Powered-By', 'Directus');
+		next();
+	});
 
-      return next();
-    });
-  });
+	if (env.CORS_ENABLED === true) {
+		app.use(cors);
+	}
 
-  app.use(cookieParser());
+	app.use((req, res, next) => {
+		(
+			express.json({
+				limit: env.MAX_PAYLOAD_SIZE,
+			}) as RequestHandler
+		)(req, res, (err: any) => {
+			if (err) {
+				return next(new InvalidPayloadException(err.message));
+			}
 
-  app.use(extractToken);
+			return next();
+		});
+	});
 
-  app.use((_req, res, next) => {
-    res.setHeader("X-Powered-By", "Directus");
-    next();
-  });
+	app.use(cookieParser());
 
-  if (env.CORS_ENABLED === true) {
-    app.use(cors);
-  }
+	app.use(extractToken);
 
-  app.get("/", (_req, res, next) => {
-    if (env.ROOT_REDIRECT) {
-      res.redirect(env.ROOT_REDIRECT);
-    } else {
-      next();
-    }
-  });
+	app.get('/', (_req, res, next) => {
+		if (env.ROOT_REDIRECT) {
+			res.redirect(env.ROOT_REDIRECT);
+		} else {
+			next();
+		}
+	});
 
-  app.get("/robots.txt", (_, res) => {
-    res.set("Content-Type", "text/plain");
-    res.status(200);
-    res.send(ROBOTSTXT);
-  });
+	app.get('/robots.txt', (_, res) => {
+		res.set('Content-Type', 'text/plain');
+		res.status(200);
+		res.send(ROBOTSTXT);
+	});
 
-  if (env.SERVE_APP) {
-    const adminPath = require.resolve("@directus/app", require.main ? { paths: [require.main.filename] } : undefined);
-    const adminUrl = new Url(env.PUBLIC_URL).addPath("app");
+	if (env.SERVE_APP) {
+		const adminPath = require.resolve('@directus/app');
+		const adminUrl = new Url(env.PUBLIC_URL).addPath('admin');
 
-    // Set the App's base path according to the APIs public URL
-    const html = await fse.readFile(adminPath, "utf8");
-    const htmlWithBase = html.replace(/<base \/>/, `<base href="${adminUrl.toString({ rootRelative: true })}/" />`);
+		// Set the App's base path according to the APIs public URL
+		const html = await fse.readFile(adminPath, 'utf8');
+		const htmlWithBase = html.replace(/<base \/>/, `<base href="${adminUrl.toString({ rootRelative: true })}/" />`);
 
-    const sendHtml = (_req: Request, res: Response) => {
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Vary", "Origin, Cache-Control");
-      res.send(htmlWithBase);
-    };
+		const sendHtml = (_req: Request, res: Response) => {
+			res.setHeader('Cache-Control', 'no-cache');
+			res.setHeader('Vary', 'Origin, Cache-Control');
+			res.send(htmlWithBase);
+		};
 
-    const setStaticHeaders = (res: ServerResponse) => {
-      res.setHeader("Cache-Control", "max-age=31536000, immutable");
-      res.setHeader("Vary", "Origin, Cache-Control");
-    };
+		const setStaticHeaders = (res: ServerResponse) => {
+			res.setHeader('Cache-Control', 'max-age=31536000, immutable');
+			res.setHeader('Vary', 'Origin, Cache-Control');
+		};
 
-    app.get("/app", sendHtml);
-    app.use("/app", express.static(path.join(adminPath, ".."), { setHeaders: setStaticHeaders }));
-    app.use("/app/*", sendHtml);
-  }
+		app.get('/admin', sendHtml);
+		app.use('/admin', express.static(path.join(adminPath, '..'), { setHeaders: setStaticHeaders }));
+		app.use('/admin/*', sendHtml);
+	}
 
-  // use the rate limiter - all routes for now
-  if (env.RATE_LIMITER_ENABLED === true) {
-    app.use(rateLimiter);
-  }
+	// use the rate limiter - all routes for now
+	if (env.RATE_LIMITER_ENABLED === true) {
+		app.use(rateLimiter);
+	}
 
-  app.get("/server/ping", (req, res) => res.send("pong"));
+	app.get('/server/ping', (req, res) => res.send('pong'));
 
-  app.use(authenticate);
+	app.use(authenticate);
 
-  app.use(checkIP);
+	app.use(checkIP);
 
-  app.use(sanitizeQuery);
+	app.use(sanitizeQuery);
 
-  app.use(cache);
+	app.use(cache);
 
-  app.use(schema);
+	app.use(schema);
 
-  app.use(getPermissions);
+	app.use(getPermissions);
 
-  await emitter.emitInit("middlewares.after", { app });
-
-  await emitter.emitInit("routes.before", { app });
+	await emitter.emitInit('middlewares.after', { app });
 
   app.use("/auth", authRouter);
 

@@ -1,0 +1,734 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model directus_activity {
+  id         Int                  @id @default(autoincrement()) @db.UnsignedInt
+  action     String               @db.VarChar(45)
+  user       String?              @db.Char(36)
+  timestamp  DateTime             @default(now()) @db.Timestamp(0)
+  ip         String?              @db.VarChar(50)
+  user_agent String?              @db.VarChar(255)
+  collection String               @db.VarChar(64)
+  item       String               @db.VarChar(255)
+  comment    String?              @db.Text
+  revisions  directus_revisions[]
+
+  @@index([collection], map: "directus_activity_collection_foreign")
+}
+
+model directus_collections {
+  collection              String                 @id @db.VarChar(64)
+  icon                    String?                @db.VarChar(30)
+  note                    String?                @db.Text
+  display_template        String?                @db.VarChar(255)
+  hidden                  Boolean                @default(false)
+  singleton               Boolean                @default(false)
+  translations            String?                @db.LongText
+  archive_field           String?                @db.VarChar(64)
+  archive_app_filter      Boolean                @default(true)
+  archive_value           String?                @db.VarChar(255)
+  unarchive_value         String?                @db.VarChar(255)
+  sort_field              String?                @db.VarChar(64)
+  accountability          String?                @default("all") @db.VarChar(255)
+  color                   String?                @db.VarChar(255)
+  item_duplication_fields String?                @db.LongText
+  sort                    Int?
+  group                   String?                @db.VarChar(64)
+  collapse                String                 @default("open") @db.VarChar(255)
+  collectionRel           directus_collections?  @relation("directus_collectionsTodirectus_collections", fields: [group], references: [collection], onDelete: Restrict, onUpdate: Restrict, map: "directus_collections_group_foreign")
+  otherCollections        directus_collections[] @relation("directus_collectionsTodirectus_collections")
+  shares                  directus_shares[]
+
+  @@index([group], map: "directus_collections_group_foreign")
+}
+
+model directus_dashboards {
+  id           String            @id @db.Char(36)
+  name         String            @db.VarChar(255)
+  icon         String            @default("dashboard") @db.VarChar(30)
+  note         String?           @db.Text
+  date_created DateTime?         @default(now()) @db.Timestamp(0)
+  user_created String?           @db.Char(36)
+  color        String?           @db.VarChar(255)
+  user         directus_users?   @relation(fields: [user_created], references: [id], onUpdate: Restrict, map: "directus_dashboards_user_created_foreign")
+  panels       directus_panels[]
+
+  @@index([user_created], map: "directus_dashboards_user_created_foreign")
+}
+
+model directus_fields {
+  id                 Int      @id @default(autoincrement()) @db.UnsignedInt
+  collection         String   @db.VarChar(64)
+  field              String   @db.VarChar(64)
+  special            String?  @db.VarChar(64)
+  interface          String?  @db.VarChar(64)
+  options            String?  @db.LongText
+  display            String?  @db.VarChar(64)
+  display_options    String?  @db.LongText
+  readonly           Boolean  @default(false)
+  hidden             Boolean  @default(false)
+  sort               Int?     @db.UnsignedInt
+  width              String?  @default("full") @db.VarChar(30)
+  translations       String?  @db.LongText
+  note               String?  @db.Text
+  conditions         String?  @db.LongText
+  required           Boolean? @default(false)
+  group              String?  @db.VarChar(64)
+  validation         String?  @db.LongText
+  validation_message String?  @db.Text
+
+  @@index([collection], map: "directus_fields_collection_foreign")
+}
+
+model directus_files {
+  id                            String              @id @db.Char(36)
+  storage                       String              @db.VarChar(255)
+  filename_disk                 String?             @db.VarChar(255)
+  filename_download             String              @db.VarChar(255)
+  title                         String?             @db.VarChar(255)
+  type                          String?             @db.VarChar(255)
+  folder                        String?             @db.Char(36)
+  uploaded_by                   String?             @db.Char(36)
+  uploaded_on                   DateTime            @default(now()) @db.Timestamp(0)
+  modified_by                   String?             @db.Char(36)
+  modified_on                   DateTime            @default(now()) @db.Timestamp(0)
+  charset                       String?             @db.VarChar(50)
+  filesize                      BigInt?
+  width                         Int?                @db.UnsignedInt
+  height                        Int?                @db.UnsignedInt
+  duration                      Int?                @db.UnsignedInt
+  embed                         String?             @db.VarChar(200)
+  description                   String?             @db.Text
+  location                      String?             @db.Text
+  tags                          String?             @db.Text
+  metadata                      String?             @db.LongText
+  groupId                       Int?                @db.UnsignedInt
+  folderRel                     directus_folders?   @relation(fields: [folder], references: [id], onUpdate: Restrict, map: "directus_files_folder_foreign")
+  group                         group?              @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "directus_files_groupid_foreign")
+  usersModifiedBy               directus_users?     @relation("directus_files_modified_byTodirectus_users", fields: [modified_by], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_files_modified_by_foreign")
+  usersUploadedBy               directus_users?     @relation("directus_files_uploaded_byTodirectus_users", fields: [uploaded_by], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_files_uploaded_by_foreign")
+  settingsByProjectLogo         directus_settings[] @relation("directus_filesTodirectus_settings_project_logo")
+  settingsByPublicBackground    directus_settings[] @relation("directus_filesTodirectus_settings_public_background")
+  settingsByPublicForeground    directus_settings[] @relation("directus_filesTodirectus_settings_public_foreground")
+  pages                         ws_page[]
+  sectionsBySectionImage2       ws_section[]        @relation("directus_filesTows_section_sectionImage2")
+  sectionsBySectionImages       ws_section[]        @relation("directus_filesTows_section_sectionImage")
+  sectionItems                  ws_section_item[]
+  websitesByFavicon             ws_website[]        @relation("directus_filesTows_website_favicon")
+  websitesByFooterLandscapeLogo ws_website[]        @relation("directus_filesTows_website_footerLandscapeLogo")
+  websitesByLandscapeLogo       ws_website[]        @relation("directus_filesTows_website_landscapeLogo")
+
+  @@index([folder], map: "directus_files_folder_foreign")
+  @@index([groupId], map: "directus_files_groupid_foreign")
+  @@index([modified_by], map: "directus_files_modified_by_foreign")
+  @@index([uploaded_by], map: "directus_files_uploaded_by_foreign")
+}
+
+model directus_flows {
+  id             String                @id @db.Char(36)
+  name           String                @db.VarChar(255)
+  icon           String?               @db.VarChar(30)
+  color          String?               @db.VarChar(255)
+  description    String?               @db.Text
+  status         String                @default("active") @db.VarChar(255)
+  trigger        String?               @db.VarChar(255)
+  accountability String?               @default("all") @db.VarChar(255)
+  options        String?               @db.LongText
+  operation      String?               @unique(map: "directus_flows_operation_unique") @db.Char(36)
+  date_created   DateTime?             @default(now()) @db.Timestamp(0)
+  user_created   String?               @db.Char(36)
+  userCreated    directus_users?       @relation(fields: [user_created], references: [id], onUpdate: Restrict, map: "directus_flows_user_created_foreign")
+  operations     directus_operations[]
+
+  @@index([user_created], map: "directus_flows_user_created_foreign")
+}
+
+model directus_folders {
+  id           String              @id @db.Char(36)
+  name         String              @db.VarChar(255)
+  parent       String?             @db.Char(36)
+  groupId      Int?                @db.UnsignedInt
+  group        group?              @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "directus_folders_groupid_foreign")
+  folder       directus_folders?   @relation("directus_foldersTodirectus_folders", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_folders_parent_foreign")
+  files        directus_files[]
+  otherFolders directus_folders[]  @relation("directus_foldersTodirectus_folders")
+  settings     directus_settings[]
+
+  @@index([groupId], map: "directus_folders_groupid_foreign")
+  @@index([parent], map: "directus_folders_parent_foreign")
+}
+
+model directus_migrations {
+  version   String    @id @db.VarChar(255)
+  name      String    @db.VarChar(255)
+  timestamp DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model directus_notifications {
+  id           Int             @id @default(autoincrement()) @db.UnsignedInt
+  timestamp    DateTime?       @default(now()) @db.Timestamp(0)
+  status       String?         @default("inbox") @db.VarChar(255)
+  recipient    String          @db.Char(36)
+  sender       String?         @db.Char(36)
+  subject      String          @db.VarChar(255)
+  message      String?         @db.Text
+  collection   String?         @db.VarChar(64)
+  item         String?         @db.VarChar(255)
+  userReceived directus_users  @relation("directus_notifications_recipientTodirectus_users", fields: [recipient], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_notifications_recipient_foreign")
+  userSent     directus_users? @relation("directus_notifications_senderTodirectus_users", fields: [sender], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_notifications_sender_foreign")
+
+  @@index([recipient], map: "directus_notifications_recipient_foreign")
+  @@index([sender], map: "directus_notifications_sender_foreign")
+}
+
+model directus_operations {
+  id                      String               @id @db.Char(36)
+  name                    String?              @db.VarChar(255)
+  key                     String               @db.VarChar(255)
+  type                    String               @db.VarChar(255)
+  position_x              Int
+  position_y              Int
+  options                 String?              @db.LongText
+  resolve                 String?              @unique(map: "directus_operations_resolve_unique") @db.Char(36)
+  reject                  String?              @unique(map: "directus_operations_reject_unique") @db.Char(36)
+  flow                    String               @db.Char(36)
+  date_created            DateTime?            @default(now()) @db.Timestamp(0)
+  user_created            String?              @db.Char(36)
+  flowRel                 directus_flows       @relation(fields: [flow], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_operations_flow_foreign")
+  operationsRejected      directus_operations? @relation("directus_operationsTodirectus_operations_reject", fields: [reject], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_operations_reject_foreign")
+  operationsResolved      directus_operations? @relation("directus_operationsTodirectus_operations_resolve", fields: [resolve], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_operations_resolve_foreign")
+  userCreated             directus_users?      @relation(fields: [user_created], references: [id], onUpdate: Restrict, map: "directus_operations_user_created_foreign")
+  otherOperationsRejected directus_operations? @relation("directus_operationsTodirectus_operations_reject")
+  otherOperationsResolved directus_operations? @relation("directus_operationsTodirectus_operations_resolve")
+
+  @@index([flow], map: "directus_operations_flow_foreign")
+  @@index([user_created], map: "directus_operations_user_created_foreign")
+}
+
+model directus_panels {
+  id           String              @id @db.Char(36)
+  dashboard    String              @db.Char(36)
+  name         String?             @db.VarChar(255)
+  icon         String?             @db.VarChar(30)
+  color        String?             @db.VarChar(10)
+  show_header  Boolean             @default(false)
+  note         String?             @db.Text
+  type         String              @db.VarChar(255)
+  position_x   Int
+  position_y   Int
+  width        Int
+  height       Int
+  options      String?             @db.LongText
+  date_created DateTime?           @default(now()) @db.Timestamp(0)
+  user_created String?             @db.Char(36)
+  dashboardRel directus_dashboards @relation(fields: [dashboard], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_panels_dashboard_foreign")
+  user         directus_users?     @relation(fields: [user_created], references: [id], onUpdate: Restrict, map: "directus_panels_user_created_foreign")
+
+  @@index([dashboard], map: "directus_panels_dashboard_foreign")
+  @@index([user_created], map: "directus_panels_user_created_foreign")
+}
+
+model directus_permissions {
+  id          Int             @id @default(autoincrement()) @db.UnsignedInt
+  role        String?         @db.Char(36)
+  collection  String          @db.VarChar(64)
+  action      String          @db.VarChar(10)
+  permissions String?         @db.LongText
+  validation  String?         @db.LongText
+  presets     String?         @db.LongText
+  fields      String?         @db.Text
+  roleRel     directus_roles? @relation(fields: [role], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_permissions_role_foreign")
+
+  @@index([collection], map: "directus_permissions_collection_foreign")
+  @@index([role], map: "directus_permissions_role_foreign")
+}
+
+model directus_presets {
+  id               Int             @id @default(autoincrement()) @db.UnsignedInt
+  bookmark         String?         @db.VarChar(255)
+  user             String?         @db.Char(36)
+  role             String?         @db.Char(36)
+  collection       String?         @db.VarChar(64)
+  search           String?         @db.VarChar(100)
+  layout           String?         @default("tabular") @db.VarChar(100)
+  layout_query     String?         @db.LongText
+  layout_options   String?         @db.LongText
+  refresh_interval Int?
+  filter           String?         @db.LongText
+  icon             String          @default("bookmark_outline") @db.VarChar(30)
+  color            String?         @db.VarChar(255)
+  roleRel          directus_roles? @relation(fields: [role], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_presets_role_foreign")
+  userRel          directus_users? @relation(fields: [user], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_presets_user_foreign")
+
+  @@index([collection], map: "directus_presets_collection_foreign")
+  @@index([role], map: "directus_presets_role_foreign")
+  @@index([user], map: "directus_presets_user_foreign")
+}
+
+model directus_relations {
+  id                      Int     @id @default(autoincrement()) @db.UnsignedInt
+  many_collection         String  @db.VarChar(64)
+  many_field              String  @db.VarChar(64)
+  one_collection          String? @db.VarChar(64)
+  one_field               String? @db.VarChar(64)
+  one_collection_field    String? @db.VarChar(64)
+  one_allowed_collections String? @db.Text
+  junction_field          String? @db.VarChar(64)
+  sort_field              String? @db.VarChar(64)
+  one_deselect_action     String  @default("nullify") @db.VarChar(255)
+
+  @@index([many_collection], map: "directus_relations_many_collection_foreign")
+  @@index([one_collection], map: "directus_relations_one_collection_foreign")
+}
+
+model directus_revisions {
+  id             Int                  @id @default(autoincrement()) @db.UnsignedInt
+  activity       Int                  @db.UnsignedInt
+  collection     String               @db.VarChar(64)
+  item           String               @db.VarChar(255)
+  data           String?              @db.LongText
+  delta          String?              @db.LongText
+  parent         Int?                 @db.UnsignedInt
+  activityRel    directus_activity    @relation(fields: [activity], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_revisions_activity_foreign")
+  parentRevision directus_revisions?  @relation("directus_revisionsTodirectus_revisions", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_revisions_parent_foreign")
+  otherRevisions directus_revisions[] @relation("directus_revisionsTodirectus_revisions")
+
+  @@index([activity], map: "directus_revisions_activity_foreign")
+  @@index([collection], map: "directus_revisions_collection_foreign")
+  @@index([parent], map: "directus_revisions_parent_foreign")
+}
+
+model directus_roles {
+  id           String                 @id @db.Char(36)
+  name         String                 @db.VarChar(100)
+  icon         String                 @default("supervised_user_circle") @db.VarChar(30)
+  description  String?                @db.Text
+  ip_access    String?                @db.Text
+  enforce_tfa  Boolean                @default(false)
+  admin_access Boolean                @default(false)
+  app_access   Boolean                @default(true)
+  groupId      Int?                   @db.UnsignedInt
+  groupRole    String?                @db.VarChar(255)
+  group        group?                 @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "directus_roles_groupid_foreign")
+  permissions  directus_permissions[]
+  presets      directus_presets[]
+  shares       directus_shares[]
+  users        directus_users[]
+
+  @@index([groupId], map: "directus_roles_groupid_foreign")
+}
+
+model directus_sessions {
+  token      String           @id @db.VarChar(64)
+  user       String?          @db.Char(36)
+  expires    DateTime         @default(now()) @db.Timestamp(0)
+  ip         String?          @db.VarChar(255)
+  user_agent String?          @db.VarChar(255)
+  share      String?          @db.Char(36)
+  shareRel   directus_shares? @relation(fields: [share], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_sessions_share_foreign")
+  userRel    directus_users?  @relation(fields: [user], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_sessions_user_foreign")
+
+  @@index([share], map: "directus_sessions_share_foreign")
+  @@index([user], map: "directus_sessions_user_foreign")
+}
+
+model directus_settings {
+  id                      Int               @id @default(autoincrement()) @db.UnsignedInt
+  project_name            String            @default("Directus") @db.VarChar(100)
+  project_url             String?           @db.VarChar(255)
+  project_color           String?           @db.VarChar(50)
+  project_logo            String?           @db.Char(36)
+  public_foreground       String?           @db.Char(36)
+  public_background       String?           @db.Char(36)
+  public_note             String?           @db.Text
+  auth_login_attempts     Int?              @default(25) @db.UnsignedInt
+  auth_password_policy    String?           @db.VarChar(100)
+  storage_asset_transform String?           @default("all") @db.VarChar(7)
+  storage_asset_presets   String?           @db.LongText
+  custom_css              String?           @db.Text
+  storage_default_folder  String?           @db.Char(36)
+  basemaps                String?           @db.LongText
+  mapbox_key              String?           @db.VarChar(255)
+  module_bar              String?           @db.LongText
+  project_descriptor      String?           @db.VarChar(100)
+  translation_strings     String?           @db.LongText
+  default_language        String            @default("en-US") @db.VarChar(255)
+  custom_aspect_ratios    String?           @db.LongText
+  projectLogo             directus_files?   @relation("directus_filesTodirectus_settings_project_logo", fields: [project_logo], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_settings_project_logo_foreign")
+  publicBackground        directus_files?   @relation("directus_filesTodirectus_settings_public_background", fields: [public_background], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_settings_public_background_foreign")
+  publicForeground        directus_files?   @relation("directus_filesTodirectus_settings_public_foreground", fields: [public_foreground], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_settings_public_foreground_foreign")
+  folder                  directus_folders? @relation(fields: [storage_default_folder], references: [id], onUpdate: Restrict, map: "directus_settings_storage_default_folder_foreign")
+
+  @@index([project_logo], map: "directus_settings_project_logo_foreign")
+  @@index([public_background], map: "directus_settings_public_background_foreign")
+  @@index([public_foreground], map: "directus_settings_public_foreground_foreign")
+  @@index([storage_default_folder], map: "directus_settings_storage_default_folder_foreign")
+}
+
+model directus_shares {
+  id            String                @id @db.Char(36)
+  name          String?               @db.VarChar(255)
+  collection    String?               @db.VarChar(64)
+  item          String?               @db.VarChar(255)
+  role          String?               @db.Char(36)
+  password      String?               @db.VarChar(255)
+  user_created  String?               @db.Char(36)
+  date_created  DateTime?             @default(now()) @db.Timestamp(0)
+  date_start    DateTime?             @db.Timestamp(0)
+  date_end      DateTime?             @db.Timestamp(0)
+  times_used    Int?                  @default(0)
+  max_uses      Int?
+  collectionRel directus_collections? @relation(fields: [collection], references: [collection], onDelete: Cascade, onUpdate: Restrict, map: "directus_shares_collection_foreign")
+  roleRel       directus_roles?       @relation(fields: [role], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_shares_role_foreign")
+  user          directus_users?       @relation(fields: [user_created], references: [id], onUpdate: Restrict, map: "directus_shares_user_created_foreign")
+  sessions      directus_sessions[]
+
+  @@index([collection], map: "directus_shares_collection_foreign")
+  @@index([role], map: "directus_shares_role_foreign")
+  @@index([user_created], map: "directus_shares_user_created_foreign")
+}
+
+model directus_users {
+  id                    String                   @id @db.Char(36)
+  first_name            String?                  @db.VarChar(50)
+  last_name             String?                  @db.VarChar(50)
+  email                 String?                  @unique(map: "directus_users_email_unique") @db.VarChar(128)
+  password              String?                  @db.VarChar(255)
+  location              String?                  @db.VarChar(255)
+  title                 String?                  @db.VarChar(50)
+  description           String?                  @db.Text
+  tags                  String?                  @db.LongText
+  avatar                String?                  @db.Char(36)
+  language              String?                  @db.VarChar(255)
+  theme                 String?                  @default("auto") @db.VarChar(20)
+  tfa_secret            String?                  @db.VarChar(255)
+  status                String                   @default("active") @db.VarChar(16)
+  role                  String?                  @db.Char(36)
+  token                 String?                  @unique(map: "directus_users_token_unique") @db.VarChar(255)
+  last_access           DateTime?                @db.Timestamp(0)
+  last_page             String?                  @db.VarChar(255)
+  provider              String                   @default("default") @db.VarChar(128)
+  external_identifier   String?                  @unique(map: "directus_users_external_identifier_unique") @db.VarChar(255)
+  auth_data             String?                  @db.LongText
+  email_notifications   Boolean?                 @default(true)
+  phone                 String?                  @db.VarChar(255)
+  currentGroupId        Int?                     @db.UnsignedInt
+  currentGroup          group?                   @relation("directus_users_currentGroupIdTogroup", fields: [currentGroupId], references: [id], onUpdate: Restrict, map: "directus_users_currentgroupid_foreign")
+  roleRel               directus_roles?          @relation(fields: [role], references: [id], onUpdate: Restrict, map: "directus_users_role_foreign")
+  dashboards            directus_dashboards[]
+  filesModified         directus_files[]         @relation("directus_files_modified_byTodirectus_users")
+  filesUploaded         directus_files[]         @relation("directus_files_uploaded_byTodirectus_users")
+  flows                 directus_flows[]
+  notificationsReceived directus_notifications[] @relation("directus_notifications_recipientTodirectus_users")
+  notificationsSent     directus_notifications[] @relation("directus_notifications_senderTodirectus_users")
+  operations            directus_operations[]
+  panels                directus_panels[]
+  presets               directus_presets[]
+  sessions              directus_sessions[]
+  shares                directus_shares[]
+  donationsCreated      donation[]               @relation("directus_usersTodonation_user_created")
+  donationsUpdated      donation[]               @relation("directus_usersTodonation_user_updated")
+  groupsCreated         group[]                  @relation("directus_usersTogroup_user_created")
+  groupsUpdated         group[]                  @relation("directus_usersTogroup_user_updated")
+  groupMembs            group_memb[]             @relation("directus_usersTogroup_memb_uid")
+  groupMembsCreated     group_memb[]             @relation("directus_usersTogroup_memb_user_created")
+  groupMembsUpdated     group_memb[]             @relation("directus_usersTogroup_memb_user_updated")
+  linksCreated          ws_link[]                @relation("directus_usersTows_link_user_created")
+  linksUpdated          ws_link[]                @relation("directus_usersTows_link_user_updated")
+  pagesCreated          ws_page[]                @relation("directus_usersTows_page_user_created")
+  pagesUpdated          ws_page[]                @relation("directus_usersTows_page_user_updated")
+  sectionsCreated       ws_section[]             @relation("directus_usersTows_section_user_created")
+  sectionsUpdated       ws_section[]             @relation("directus_usersTows_section_user_updated")
+  sectionItemsCreated   ws_section_item[]        @relation("directus_usersTows_section_item_user_created")
+  sectionItemsUpdated   ws_section_item[]        @relation("directus_usersTows_section_item_user_updated")
+  websitesCreated       ws_website[]             @relation("directus_usersTows_website_user_created")
+  websitesUpdated       ws_website[]             @relation("directus_usersTows_website_user_updated")
+
+  @@index([currentGroupId], map: "directus_users_currentgroupid_foreign")
+  @@index([role], map: "directus_users_role_foreign")
+}
+
+model directus_webhooks {
+  id          Int     @id @default(autoincrement()) @db.UnsignedInt
+  name        String  @db.VarChar(255)
+  method      String  @default("POST") @db.VarChar(10)
+  url         String  @db.VarChar(255)
+  status      String  @default("active") @db.VarChar(10)
+  data        Boolean @default(true)
+  actions     String  @db.VarChar(100)
+  collections String  @db.VarChar(255)
+  headers     String? @db.LongText
+}
+
+model donation {
+  id             Int             @id @default(autoincrement()) @db.UnsignedInt
+  sort           Int?
+  user_created   String?         @db.Char(36)
+  date_created   DateTime?       @db.Timestamp(0)
+  user_updated   String?         @db.Char(36)
+  date_updated   DateTime?       @db.Timestamp(0)
+  donationStatus String?         @db.VarChar(255)
+  donationDate   DateTime?       @db.Date
+  donationAmount Decimal?        @db.Decimal(10, 5)
+  paymentType    String?         @db.VarChar(255)
+  donationMethod String?         @db.VarChar(255)
+  donorEmail     String?         @db.VarChar(255)
+  donorName      String?         @db.VarChar(255)
+  donorAddress   String?         @db.VarChar(255)
+  donorPhone     String?         @db.VarChar(255)
+  userCreated    directus_users? @relation("directus_usersTodonation_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "donation_user_created_foreign")
+  userUpdated    directus_users? @relation("directus_usersTodonation_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "donation_user_updated_foreign")
+
+  @@index([user_created], map: "donation_user_created_foreign")
+  @@index([user_updated], map: "donation_user_updated_foreign")
+}
+
+model group {
+  id                 Int                @id @default(autoincrement()) @db.UnsignedInt
+  status             String?            @default("published") @db.VarChar(255)
+  sort               Int?
+  user_created       String?            @db.Char(36)
+  date_created       DateTime?          @db.Timestamp(0)
+  user_updated       String?            @db.Char(36)
+  date_updated       DateTime?          @db.Timestamp(0)
+  groupname          String?            @unique(map: "group_groupname_ak") @db.VarChar(255)
+  groupDisplayName   String?            @db.VarChar(255)
+  groupDescription   String?            @db.Text
+  groupPrefs         String?            @db.LongText
+  defaultGroupRoleId Int?               @db.UnsignedInt
+  groupTypeId        Int?               @db.UnsignedInt
+  groupRole          group_role?        @relation(fields: [defaultGroupRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_defaultgrouproleid_foreign")
+  group_type         group_type?        @relation(fields: [groupTypeId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_grouptypeid_foreign")
+  userCreated        directus_users?    @relation("directus_usersTogroup_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_created_foreign")
+  userUpdated        directus_users?    @relation("directus_usersTogroup_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_updated_foreign")
+  files              directus_files[]
+  folders            directus_folders[]
+  roles              directus_roles[]
+  usersCurrent       directus_users[]   @relation("directus_users_currentGroupIdTogroup")
+  groupMembs         group_memb[]
+  links              ws_link[]
+  pages              ws_page[]
+  sections           ws_section[]
+  sectionItems       ws_section_item[]
+  websites           ws_website[]
+
+  @@index([defaultGroupRoleId], map: "group_defaultgrouproleid_foreign")
+  @@index([user_created], map: "group_user_created_foreign")
+  @@index([user_updated], map: "group_user_updated_foreign")
+  @@index([groupTypeId], map: "group_grouptypeid_foreign")
+}
+
+model group_memb {
+  id                Int                @id @default(autoincrement()) @db.UnsignedInt
+  sort              Int?
+  user_created      String?            @db.Char(36)
+  date_created      DateTime?          @db.Timestamp(0)
+  user_updated      String?            @db.Char(36)
+  date_updated      DateTime?          @db.Timestamp(0)
+  groupMembPrefs    String?            @db.LongText
+  groupMembStatusId Int?               @db.UnsignedInt
+  groupRoleId       Int?               @db.UnsignedInt
+  gid               Int?               @db.UnsignedInt
+  uid               String?            @db.Char(36)
+  group             group?             @relation(fields: [gid], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "group_memb_gid_foreign")
+  groupMembStatus   group_memb_status? @relation(fields: [groupMembStatusId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_memb_groupmembstatusid_foreign")
+  groupRole         group_role?        @relation(fields: [groupRoleId], references: [id], onUpdate: Restrict, map: "group_memb_grouproleid_foreign")
+  user              directus_users?    @relation("directus_usersTogroup_memb_uid", fields: [uid], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "group_memb_uid_foreign")
+  userCreated       directus_users?    @relation("directus_usersTogroup_memb_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_memb_user_created_foreign")
+  userUpdated       directus_users?    @relation("directus_usersTogroup_memb_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_memb_user_updated_foreign")
+
+  @@unique([gid, uid], map: "group_memb_uid_gid_ak")
+  @@index([groupMembStatusId], map: "group_memb_groupmembstatusid_foreign")
+  @@index([groupRoleId], map: "group_memb_grouproleid_foreign")
+  @@index([uid], map: "group_memb_uid_foreign")
+  @@index([user_created], map: "group_memb_user_created_foreign")
+  @@index([user_updated], map: "group_memb_user_updated_foreign")
+}
+
+model group_memb_status {
+  id              Int          @id @default(autoincrement()) @db.UnsignedInt
+  groupMembStatus String?      @db.VarChar(255)
+  groupMembs      group_memb[]
+}
+
+model group_role {
+  id         Int          @id @default(autoincrement()) @db.UnsignedInt
+  groupRole  String?      @db.VarChar(255)
+  groups     group[]
+  groupMembs group_memb[]
+}
+
+model group_type {
+  id        Int     @id @default(autoincrement()) @db.UnsignedInt
+  groupType String? @db.VarChar(255)
+  group     group[]
+}
+
+model ws_link {
+  id           Int             @id @default(autoincrement()) @db.UnsignedInt
+  status       String          @default("draft") @db.VarChar(255)
+  sort         Int?
+  user_created String?         @db.Char(36)
+  date_created DateTime?       @db.Timestamp(0)
+  user_updated String?         @db.Char(36)
+  date_updated DateTime?       @db.Timestamp(0)
+  groupId      Int?            @db.UnsignedInt
+  websiteId    Int?            @db.UnsignedInt
+  linkType     String?         @db.VarChar(255)
+  url          String?         @db.VarChar(255)
+  text         String?         @db.VarChar(255)
+  newTab       Boolean?        @default(false)
+  group        group?          @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "ws_link_groupid_foreign")
+  userCreated  directus_users? @relation("directus_usersTows_link_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_link_user_created_foreign")
+  userUpdated  directus_users? @relation("directus_usersTows_link_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_link_user_updated_foreign")
+  website      ws_website?     @relation(fields: [websiteId], references: [id], onUpdate: Restrict, map: "ws_link_websiteid_foreign")
+
+  @@index([groupId], map: "ws_link_groupid_foreign")
+  @@index([user_created], map: "ws_link_user_created_foreign")
+  @@index([user_updated], map: "ws_link_user_updated_foreign")
+  @@index([websiteId], map: "ws_link_websiteid_foreign")
+}
+
+model ws_page {
+  id                  Int             @id @default(autoincrement()) @db.UnsignedInt
+  status              String          @default("draft") @db.VarChar(255)
+  sort                Int?
+  user_created        String?         @db.Char(36)
+  date_created        DateTime?       @db.Timestamp(0)
+  user_updated        String?         @db.Char(36)
+  date_updated        DateTime?       @db.Timestamp(0)
+  pageShortName       String?         @db.VarChar(255)
+  pageMetaTitle       String?         @db.VarChar(255)
+  pageMetaDescription String?         @db.VarChar(255)
+  pageMetaImageId     String?         @map("pageMetaImage") @db.Char(36)
+  htmlTitle           String?         @db.VarChar(255)
+  websiteId           Int?            @db.UnsignedInt
+  pagePath            String?         @db.VarChar(255)
+  pageHostPath        String?         @db.VarChar(255)
+  isPrimaryNav        Boolean?
+  isLoginRequired     Boolean?        @default(false)
+  groupId             Int?            @db.UnsignedInt
+  group               group?          @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "ws_page_groupid_foreign")
+  pageMetaImage       directus_files? @relation(fields: [pageMetaImageId], references: [id], onUpdate: Restrict, map: "ws_page_pagemetaimage_foreign")
+  userCreated         directus_users? @relation("directus_usersTows_page_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_page_user_created_foreign")
+  userUpdated         directus_users? @relation("directus_usersTows_page_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_page_user_updated_foreign")
+  website             ws_website?     @relation(fields: [websiteId], references: [id], onUpdate: Restrict, map: "ws_page_websiteid_foreign")
+  sections            ws_section[]
+
+  @@index([groupId], map: "ws_page_groupid_foreign")
+  @@index([pageMetaImageId], map: "ws_page_pagemetaimage_foreign")
+  @@index([user_created], map: "ws_page_user_created_foreign")
+  @@index([user_updated], map: "ws_page_user_updated_foreign")
+  @@index([websiteId], map: "ws_page_websiteid_foreign")
+}
+
+model ws_section {
+  id                Int               @id @default(autoincrement()) @db.UnsignedInt
+  status            String            @default("draft") @db.VarChar(255)
+  sort              Int?
+  user_created      String?           @db.Char(36)
+  date_created      DateTime?         @db.Timestamp(0)
+  user_updated      String?           @db.Char(36)
+  date_updated      DateTime?         @db.Timestamp(0)
+  sectionType       String?           @db.VarChar(255)
+  sectionTitle      String?           @db.VarChar(255)
+  sectionSubtitle   String?           @db.VarChar(255)
+  sectionImageId    String?           @map("sectionImage") @db.Char(36)
+  sectionText       String?           @db.Text
+  pageId            Int?              @db.UnsignedInt
+  sectionLinkUrl    String?           @db.VarChar(255)
+  sectionLinkText   String?           @db.VarChar(255)
+  sectionLinkNewTab Boolean?          @default(false)
+  sectionText2      String?           @db.Text
+  sectionImage2Id   String?           @map("sectionImage2") @db.Char(36)
+  groupId           Int?              @db.UnsignedInt
+  group             group?            @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "ws_section_groupid_foreign")
+  page              ws_page?          @relation(fields: [pageId], references: [id], onUpdate: Restrict, map: "ws_section_pageid_foreign")
+  sectionImage2     directus_files?   @relation("directus_filesTows_section_sectionImage2", fields: [sectionImage2Id], references: [id], onUpdate: Restrict, map: "ws_section_sectionimage2_foreign")
+  sectionImage      directus_files?   @relation("directus_filesTows_section_sectionImage", fields: [sectionImageId], references: [id], onUpdate: Restrict, map: "ws_section_sectionimage_foreign")
+  userCreated       directus_users?   @relation("directus_usersTows_section_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_section_user_created_foreign")
+  userUpdated       directus_users?   @relation("directus_usersTows_section_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_section_user_updated_foreign")
+  items             ws_section_item[]
+
+  @@index([groupId], map: "ws_section_groupid_foreign")
+  @@index([pageId], map: "ws_section_pageid_foreign")
+  @@index([sectionImage2Id], map: "ws_section_sectionimage2_foreign")
+  @@index([sectionImageId], map: "ws_section_sectionimage_foreign")
+  @@index([user_created], map: "ws_section_user_created_foreign")
+  @@index([user_updated], map: "ws_section_user_updated_foreign")
+}
+
+model ws_section_item {
+  id             Int             @id @default(autoincrement()) @db.UnsignedInt
+  status         String          @default("draft") @db.VarChar(255)
+  sort           Int?
+  user_created   String?         @db.Char(36)
+  date_created   DateTime?       @db.Timestamp(0)
+  user_updated   String?         @db.Char(36)
+  date_updated   DateTime?       @db.Timestamp(0)
+  sectionId      Int?            @db.UnsignedInt
+  itemTitle      String?         @db.VarChar(255)
+  itemSubtitle   String?         @db.VarChar(255)
+  itemText       String?         @db.Text
+  itemImageId    String?         @map("itemImage") @db.Char(36)
+  itemLinkUrl    String?         @db.VarChar(255)
+  itemLinkText   String?         @db.VarChar(255)
+  itemLinkNewTab Boolean?        @default(false)
+  itemTitle2     String?         @db.VarChar(255)
+  itemSubtitle2  String?         @db.VarChar(255)
+  groupId        Int?            @db.UnsignedInt
+  group          group?          @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "ws_section_item_groupid_foreign")
+  itemImage      directus_files? @relation(fields: [itemImageId], references: [id], onUpdate: Restrict, map: "ws_section_item_itemimage_foreign")
+  section        ws_section?     @relation(fields: [sectionId], references: [id], onUpdate: Restrict, map: "ws_section_item_sectionid_foreign")
+  userCreated    directus_users? @relation("directus_usersTows_section_item_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_section_item_user_created_foreign")
+  userUpdated    directus_users? @relation("directus_usersTows_section_item_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_section_item_user_updated_foreign")
+
+  @@index([groupId], map: "ws_section_item_groupid_foreign")
+  @@index([itemImageId], map: "ws_section_item_itemimage_foreign")
+  @@index([sectionId], map: "ws_section_item_sectionid_foreign")
+  @@index([user_created], map: "ws_section_item_user_created_foreign")
+  @@index([user_updated], map: "ws_section_item_user_updated_foreign")
+}
+
+model ws_website {
+  id                    Int             @id @default(autoincrement()) @db.UnsignedInt
+  sort                  Int?
+  user_created          String?         @db.Char(36)
+  date_created          DateTime?       @db.Timestamp(0)
+  user_updated          String?         @db.Char(36)
+  date_updated          DateTime?       @db.Timestamp(0)
+  groupId               Int?            @db.UnsignedInt
+  domain                String?         @db.VarChar(255)
+  baseUrl               String?         @db.VarChar(255)
+  baseApiUrl            String?         @db.VarChar(255)
+  htmlTitleSuffix       String?         @db.VarChar(255)
+  twitterCardType       String?         @db.VarChar(255)
+  twitterUsername       String?         @db.VarChar(255)
+  hostPath              String?         @db.VarChar(255)
+  copyrightName         String?         @db.VarChar(255)
+  faviconId             String?         @map("favicon") @db.Char(36)
+  landscapeLogoId       String?         @map("landscapeLogo") @db.Char(36)
+  footerLandscapeLogoId String?         @map("footerLandscapeLogo") @db.Char(36)
+  favicon               directus_files? @relation("directus_filesTows_website_favicon", fields: [faviconId], references: [id], onUpdate: Restrict, map: "ws_website_favicon_foreign")
+  footerLandscapeLogo   directus_files? @relation("directus_filesTows_website_footerLandscapeLogo", fields: [footerLandscapeLogoId], references: [id], onUpdate: Restrict, map: "ws_website_footerlandscapelogo_foreign")
+  group                 group?          @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "ws_website_groupid_foreign")
+  landscapeLogo         directus_files? @relation("directus_filesTows_website_landscapeLogo", fields: [landscapeLogoId], references: [id], onUpdate: Restrict, map: "ws_website_landscapelogo_foreign")
+  userCreated           directus_users? @relation("directus_usersTows_website_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_website_user_created_foreign")
+  userUpdated           directus_users? @relation("directus_usersTows_website_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_website_user_updated_foreign")
+  links                 ws_link[]
+  pages                 ws_page[]
+
+  @@index([groupId], map: "ws_website_groupid_foreign")
+  @@index([faviconId], map: "ws_website_favicon_foreign")
+  @@index([footerLandscapeLogoId], map: "ws_website_footerlandscapelogo_foreign")
+  @@index([landscapeLogoId], map: "ws_website_landscapelogo_foreign")
+  @@index([user_created], map: "ws_website_user_created_foreign")
+  @@index([user_updated], map: "ws_website_user_updated_foreign")
+}

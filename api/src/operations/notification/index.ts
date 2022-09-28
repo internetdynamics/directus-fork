@@ -11,41 +11,40 @@ type Options = {
 };
 
 export default defineOperationApi<Options>({
-  id: "notification",
+	id: 'notification',
 
-  handler: async ({ recipient, subject, message, permissions }, { accountability, database, getSchema }) => {
-    const schema = await getSchema({ database });
+	handler: async ({ recipient, subject, message, permissions }, { accountability, database, getSchema }) => {
+		const schema = await getSchema({ database });
+		let customAccountability: Accountability | null;
 
-    let customAccountability: Accountability | null;
+		if (!permissions || permissions === '$trigger') {
+			customAccountability = accountability;
+		} else if (permissions === '$full') {
+			customAccountability = null;
+		} else if (permissions === '$public') {
+			customAccountability = await getAccountabilityForRole(null, { database, schema, accountability });
+		} else {
+			customAccountability = await getAccountabilityForRole(permissions, { database, schema, accountability });
+		}
 
-    if (!permissions || permissions === "$trigger") {
-      customAccountability = accountability;
-    } else if (permissions === "$full") {
-      customAccountability = null;
-    } else if (permissions === "$public") {
-      customAccountability = await getAccountabilityForRole(null, { database, schema, accountability });
-    } else {
-      customAccountability = await getAccountabilityForRole(permissions, { database, schema, accountability });
-    }
+		const notificationsService = new NotificationsService({
+			schema: await getSchema({ database }),
+			accountability: customAccountability,
+			knex: database,
+		});
 
-    const notificationsService = new NotificationsService({
-      schema: await getSchema({ database }),
-      accountability: customAccountability,
-      knex: database,
-    });
+		const messageString = message ? optionToString(message) : null;
 
-    const messageString = message ? optionToString(message) : null;
+		const payload = toArray(recipient).map((userId) => {
+			return {
+				recipient: userId,
+				sender: customAccountability?.user ?? null,
+				subject,
+				message: messageString,
+			};
+		});
+		const result = await notificationsService.createMany(payload);
 
-    const payload = toArray(recipient).map((userId) => {
-      return {
-        recipient: userId,
-        sender: customAccountability?.user ?? null,
-        subject,
-        message: messageString,
-      };
-    });
-    const result = await notificationsService.createMany(payload);
-
-    return result;
-  },
+		return result;
+	},
 });

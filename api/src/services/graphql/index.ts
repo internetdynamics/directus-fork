@@ -407,6 +407,7 @@ export class GraphQLService {
 						// submitted on updates
 						if (
 							field.nullable === false &&
+							!field.defaultValue &&
 							!GENERATE_SPECIAL.some((flag) => field.special.includes(flag)) &&
 							action !== 'update'
 						) {
@@ -414,7 +415,10 @@ export class GraphQLService {
 						}
 
 						if (collection.primary === field.field) {
-							type = GraphQLID;
+							if (!field.defaultValue && !field.special.includes('uuid') && action === 'create')
+								type = GraphQLNonNull(GraphQLID);
+							else if (['create', 'update'].includes(action)) type = GraphQLID;
+							else type = GraphQLNonNull(GraphQLID);
 						}
 
 						acc[field.field] = {
@@ -425,44 +429,46 @@ export class GraphQLService {
 							},
 						};
 
-						if (field.type === 'date') {
-							acc[`${field.field}_func`] = {
-								type: DateFunctions,
-								resolve: (obj: Record<string, any>) => {
-									const funcFields = Object.keys(DateFunctions.getFields()).map((key) => `${field.field}_${key}`);
-									return mapKeys(pick(obj, funcFields), (_value, key) => key.substring(field.field.length + 1));
-								},
-							};
-						}
+						if (action === 'read') {
+							if (field.type === 'date') {
+								acc[`${field.field}_func`] = {
+									type: DateFunctions,
+									resolve: (obj: Record<string, any>) => {
+										const funcFields = Object.keys(DateFunctions.getFields()).map((key) => `${field.field}_${key}`);
+										return mapKeys(pick(obj, funcFields), (_value, key) => key.substring(field.field.length + 1));
+									},
+								};
+							}
 
-						if (field.type === 'time') {
-							acc[`${field.field}_func`] = {
-								type: TimeFunctions,
-								resolve: (obj: Record<string, any>) => {
-									const funcFields = Object.keys(TimeFunctions.getFields()).map((key) => `${field.field}_${key}`);
-									return mapKeys(pick(obj, funcFields), (_value, key) => key.substring(field.field.length + 1));
-								},
-							};
-						}
+							if (field.type === 'time') {
+								acc[`${field.field}_func`] = {
+									type: TimeFunctions,
+									resolve: (obj: Record<string, any>) => {
+										const funcFields = Object.keys(TimeFunctions.getFields()).map((key) => `${field.field}_${key}`);
+										return mapKeys(pick(obj, funcFields), (_value, key) => key.substring(field.field.length + 1));
+									},
+								};
+							}
 
-						if (field.type === 'dateTime' || field.type === 'timestamp') {
-							acc[`${field.field}_func`] = {
-								type: DateTimeFunctions,
-								resolve: (obj: Record<string, any>) => {
-									const funcFields = Object.keys(DateTimeFunctions.getFields()).map((key) => `${field.field}_${key}`);
-									return mapKeys(pick(obj, funcFields), (_value, key) => key.substring(field.field.length + 1));
-								},
-							};
-						}
+							if (field.type === 'dateTime' || field.type === 'timestamp') {
+								acc[`${field.field}_func`] = {
+									type: DateTimeFunctions,
+									resolve: (obj: Record<string, any>) => {
+										const funcFields = Object.keys(DateTimeFunctions.getFields()).map((key) => `${field.field}_${key}`);
+										return mapKeys(pick(obj, funcFields), (_value, key) => key.substring(field.field.length + 1));
+									},
+								};
+							}
 
-						if (field.type === 'json' || field.type === 'alias') {
-							acc[`${field.field}_func`] = {
-								type: CountFunctions,
-								resolve: (obj: Record<string, any>) => {
-									const funcFields = Object.keys(CountFunctions.getFields()).map((key) => `${field.field}_${key}`);
-									return mapKeys(pick(obj, funcFields), (_value, key) => key.substring(field.field.length + 1));
-								},
-							};
+							if (field.type === 'json' || field.type === 'alias') {
+								acc[`${field.field}_func`] = {
+									type: CountFunctions,
+									resolve: (obj: Record<string, any>) => {
+										const funcFields = Object.keys(CountFunctions.getFields()).map((key) => `${field.field}_${key}`);
+										return mapKeys(pick(obj, funcFields), (_value, key) => key.substring(field.field.length + 1));
+									},
+								};
+							}
 						}
 
 						return acc;
@@ -556,6 +562,9 @@ export class GraphQLService {
 					_contains: {
 						type: GraphQLString,
 					},
+					_icontains: {
+						type: GraphQLString,
+					},
 					_ncontains: {
 						type: GraphQLString,
 					},
@@ -637,6 +646,12 @@ export class GraphQLService {
 					_nnull: {
 						type: GraphQLBoolean,
 					},
+					_in: {
+						type: new GraphQLList(GraphQLString),
+					},
+					_nin: {
+						type: new GraphQLList(GraphQLString),
+					},
 					_between: {
 						type: new GraphQLList(GraphQLStringOrFloat),
 					},
@@ -709,6 +724,12 @@ export class GraphQLService {
 					},
 					_nintersects_bbox: {
 						type: GraphQLGeoJSON,
+					},
+					_null: {
+						type: GraphQLBoolean,
+					},
+					_nnull: {
+						type: GraphQLBoolean,
 					},
 				},
 			});
@@ -1075,10 +1096,12 @@ export class GraphQLService {
 						});
 					}
 				} else if (relation.meta?.one_allowed_collections) {
-					/**
-					 * @TODO
-					 * Looking to add nested typed filters per union type? This is where that's supposed to go.
-					 */
+					ReadableCollectionFilterTypes[relation.collection]?.removeField('item');
+					for (const collection of relation.meta.one_allowed_collections) {
+						ReadableCollectionFilterTypes[relation.collection]?.addFields({
+							[`item__${collection}`]: ReadableCollectionFilterTypes[collection],
+						});
+					}
 				}
 			}
 
@@ -1955,6 +1978,7 @@ export class GraphQLService {
 					const accountability = {
 						ip: req?.ip,
 						userAgent: req?.get('user-agent'),
+						origin: req?.get('origin'),
 						role: null,
 					};
 					const authenticationService = new AuthenticationService({
@@ -1988,6 +2012,7 @@ export class GraphQLService {
 					const accountability = {
 						ip: req?.ip,
 						userAgent: req?.get('user-agent'),
+						origin: req?.get('origin'),
 						role: null,
 					};
 					const authenticationService = new AuthenticationService({
@@ -2024,6 +2049,7 @@ export class GraphQLService {
 					const accountability = {
 						ip: req?.ip,
 						userAgent: req?.get('user-agent'),
+						origin: req?.get('origin'),
 						role: null,
 					};
 					const authenticationService = new AuthenticationService({
@@ -2048,6 +2074,7 @@ export class GraphQLService {
 					const accountability = {
 						ip: req?.ip,
 						userAgent: req?.get('user-agent'),
+						origin: req?.get('origin'),
 						role: null,
 					};
 					const service = new UsersService({ accountability, schema: this.schema });
@@ -2073,6 +2100,7 @@ export class GraphQLService {
 					const accountability = {
 						ip: req?.ip,
 						userAgent: req?.get('user-agent'),
+						origin: req?.get('origin'),
 						role: null,
 					};
 					const service = new UsersService({ accountability, schema: this.schema });
@@ -2680,6 +2708,7 @@ export class GraphQLService {
 							user: this.accountability?.user,
 							ip: this.accountability?.ip,
 							user_agent: this.accountability?.userAgent,
+							origin: this.accountability?.origin,
 						});
 
 						if ('directus_activity' in ReadCollectionTypes) {

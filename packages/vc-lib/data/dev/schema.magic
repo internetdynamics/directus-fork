@@ -1,0 +1,372 @@
+D-COLLECTION: donation
+D-FIELD: donationStatus
+{ interface: 'select-dropdown',
+  options:
+   '{"choices": [{"text": "pending", "value": "Pending"}, {"text": "complete", "value": "Complete"}]}',
+  display: 'labels' }
+D-FIELD: donationDate
+{ interface: 'datetime' }
+D-FIELD: donationAmount
+{ interface: 'input',
+  display: 'formatted-value',
+  display_options: '{"prefix": "$"}' }
+D-FIELD: paymentType
+{ interface: 'select-dropdown',
+  options:
+   '{"choices": [{"text": "donation", "value": "Donation"}, {"text": "payment", "value": "Payment"}]}',
+  display: 'labels' }
+D-FIELD: donationMethod
+{ interface: 'select-dropdown',
+  options:
+   '{"choices": [{"text": "zelle", "value": "Zelle"}, {"text": "wire", "value": "Wire"}, {"text": "check", "value": "Check"}, {"text": "cashapp", "value": "Cash App"}, {"text": "venmo", "value": "Venmo"}, {"text": "paypal", "value": "PayPal"}]}',
+  display: 'labels' }
+
+D-COLLECTION: group
+D-FIELD: defaultGroupRoleId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupRole}}"}',
+  display: 'related-values',
+  display_options: '{"template":"{{groupRole}}"}' }
+D-FIELD: groupMembs
+{ special: 'o2m',
+  interface: 'list-o2m',
+  options:
+   '{"enableSelect":false,"template":"{{uid.first_name}} {{uid.last_name}} ({{uid.email}}) : {{groupRoleId.groupRole}} ({{groupMembStatusId.groupMembStatus}})"}',
+  display: 'related-values',
+  display_options:
+   '{"template":"{{uid.first_name}} {{uid.last_name}} ({{uid.email}}) : {{groupRoleId.groupRole}} ({{groupMembStatusId.groupMembStatus}})"}' }
+D-FIELD: groupTypeId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupType}}","enableCreate":false}',
+  display: 'related-values' }
+D-REL: To One:  group.defaultGroupRoleId                                      => group_role.id
+D-REL: To One:  group.groupTypeId                                             => group_type.id
+D-REL: To Many: group.id                                                      => ws_link.groupId                onDeselect(nullify) 
+D-REL: To Many: group.id                                                      => ws_website.groupId             onDeselect(nullify) 
+D-REL: To Many: group.id                                                      => ws_page.groupId                onDeselect(nullify) 
+D-REL: To Many: group.id                                                      => ws_section.groupId             onDeselect(nullify) 
+D-REL: To Many: group.id                                                      => ws_section_item.groupId        onDeselect(nullify) 
+D-REL: To Many: group.id                                                      => directus_files.groupId         onDeselect(nullify) 
+D-REL: To Many: group.id                                                      => directus_folders.groupId       onDeselect(nullify) 
+D-REL: To Many: group.id                                                      => directus_users.currentGroupId  onDeselect(nullify) 
+D-REL: To Many: group.id                                                      => directus_roles.groupId         onDeselect(nullify) 
+D-REL: To Many: group.id                       (group.groupMembs)             => group_memb.gid                 onDeselect(delete) sort(sort)
+P-REL: To One:  group.defaultGroupRoleId       (group.groupRole)              => group_role.id                  index(group_defaultgrouproleid_foreign)  
+P-REL: To One:  group.groupTypeId              (group.group_type)             => group_type.id                  index(group_grouptypeid_foreign)         
+P-REL: To Many: group.id                       (group.files)                  => directus_files.groupId                                                  
+P-REL: To Many: group.id                       (group.folders)                => directus_folders.groupId                                                
+P-REL: To Many: group.id                       (group.roles)                  => directus_roles.groupId                                                  
+P-REL: To Many: group.id                       (group.usersCurrent)           => directus_users.currentGroupId                                           tag(directus_users_currentGroupIdTogroup)
+P-REL: To Many: group.id                       (group.groupMembs)             => group_memb.gid                                                          
+P-REL: To Many: group.id                       (group.links)                  => ws_link.groupId                                                         
+P-REL: To Many: group.id                       (group.pages)                  => ws_page.groupId                                                         
+P-REL: To Many: group.id                       (group.sections)               => ws_section.groupId                                                      
+P-REL: To Many: group.id                       (group.sectionItems)           => ws_section_item.groupId                                                 
+P-REL: To Many: group.id                       (group.websites)               => ws_website.groupId                                                      
+
+D-COLLECTION: group_memb
+D-FIELD: groupMembStatusId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupMembStatus}}","enableCreate":false}',
+  display: 'related-values' }
+D-FIELD: groupRoleId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"enableCreate":false,"template":"{{groupRole}}"}',
+  display: 'related-values',
+  display_options: '{"template":"{{groupRole}}"}' }
+D-FIELD: gid
+{ interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}',
+  display: 'related-values',
+  display_options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
+D-FIELD: uid
+{ interface: 'select-dropdown-m2o',
+  options: '{"template":"{{first_name}} {{last_name}} ({{email}})","enableCreate":false}',
+  display: 'related-values',
+  display_options: '{"template":"{{first_name}} {{last_name}} ({{email}})"}' }
+D-REL: To One:  group_memb.groupMembStatusId                                  => group_memb_status.id
+D-REL: To One:  group_memb.groupRoleId                                        => group_role.id
+D-REL: To One:  group_memb.gid                 (group.groupMembs)             => group.id
+D-REL: To One:  group_memb.uid                                                => directus_users.id
+P-REL: To One:  group_memb.gid                 (group_memb.group)             => group.id                       index(group_memb_gid_foreign)            
+P-REL: To One:  group_memb.groupMembStatusId   (group_memb.groupMembStatus)   => group_memb_status.id           index(group_memb_groupmembstatusid_foreign) 
+P-REL: To One:  group_memb.groupRoleId         (group_memb.groupRole)         => group_role.id                  index(group_memb_grouproleid_foreign)    
+P-REL: To One:  group_memb.uid                 (group_memb.user)              => directus_users.id              index(group_memb_uid_foreign)            tag(directus_usersTogroup_memb_uid)
+
+D-COLLECTION: group_memb_status
+D-REL: To Many: group_memb_status.id                                          => group_memb.groupMembStatusId   onDeselect(nullify) 
+P-REL: To Many: group_memb_status.id           (group_memb_status.groupMembs) => group_memb.groupMembStatusId                                            
+
+D-COLLECTION: group_role
+D-REL: To Many: group_role.id                                                 => group.defaultGroupRoleId       onDeselect(nullify) 
+D-REL: To Many: group_role.id                                                 => group_memb.groupRoleId         onDeselect(nullify) 
+P-REL: To Many: group_role.id                  (group_role.groups)            => group.defaultGroupRoleId                                                
+P-REL: To Many: group_role.id                  (group_role.groupMembs)        => group_memb.groupRoleId                                                  
+
+D-COLLECTION: group_type
+D-REL: To Many: group_type.id                                                 => group.groupTypeId              onDeselect(nullify) 
+P-REL: To Many: group_type.id                  (group_type.group)             => group.groupTypeId                                                       
+
+D-COLLECTION: ws_link
+D-FIELD: groupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}',
+  display: 'related-values' }
+D-FIELD: websiteId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template": "{{hostPath}}"}' }
+D-FIELD: newTab
+{ special: 'cast-boolean', interface: 'boolean' }
+D-REL: To One:  ws_link.groupId                                               => group.id
+D-REL: To One:  ws_link.websiteId              (ws_website.links)             => ws_website.id
+P-REL: To One:  ws_link.groupId                (ws_link.group)                => group.id                       index(ws_link_groupid_foreign)           
+P-REL: To One:  ws_link.websiteId              (ws_link.website)              => ws_website.id                  index(ws_link_websiteid_foreign)         
+
+D-COLLECTION: ws_page
+D-FIELD: pageMetaImage
+{ special: 'file', interface: 'file-image', display: 'image' }
+D-FIELD: websiteId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template": "{{baseUrl}}"}' }
+D-FIELD: isPrimaryNav
+{ special: 'cast-boolean', interface: 'boolean' }
+D-FIELD: sections
+{ special: 'o2m',
+  interface: 'list-o2m',
+  options: '{"template": "{{sectionTitle}} {{sectionType}}"}' }
+D-FIELD: isLoginRequired
+{ special: 'cast-boolean', interface: 'boolean' }
+D-FIELD: groupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}',
+  display: 'related-values' }
+D-REL: To One:  ws_page.pageMetaImage                                         => directus_files.id
+D-REL: To One:  ws_page.websiteId              (ws_website.pages)             => ws_website.id
+D-REL: To One:  ws_page.groupId                                               => group.id
+D-REL: To Many: ws_page.id                     (ws_page.sections)             => ws_section.pageId              onDeselect(nullify) 
+P-REL: To One:  ws_page.groupId                (ws_page.group)                => group.id                       index(ws_page_groupid_foreign)           
+P-REL: To One:  ws_page.pageMetaImageId        (ws_page.pageMetaImage)        => directus_files.id              index(ws_page_pagemetaimage_foreign)     
+P-REL: To One:  ws_page.websiteId              (ws_page.website)              => ws_website.id                  index(ws_page_websiteid_foreign)         
+P-REL: To Many: ws_page.id                     (ws_page.sections)             => ws_section.pageId                                                       
+
+D-COLLECTION: ws_section
+D-FIELD: sectionType
+{ interface: 'select-dropdown',
+  options:
+   '{"choices": [{"text": "section-main", "value": "section-main"}, {"text": "section-hero", "value": "section-hero"}, {"text": "section-richtext", "value": "section-richtext"}, {"text": "section-01", "value": "section-01"}, {"text": "section-02", "value": "section-02"}, {"text": "section-03", "value": "section-03"}, {"text": "section-04", "value": "section-04"}, {"text": "section-05", "value": "section-05"}, {"text": "section-06", "value": "section-06"}, {"text": "section-07", "value": "section-07"}, {"text": "section-08", "value": "section-08"}, {"text": "section-09", "value": "section-09"}, {"text": "section-10", "value": "section-10"}, {"text": "section-11", "value": "section-11"}, {"text": "section-12", "value": "section-12"}, {"text": "section-13", "value": "section-13"}, {"text": "section-14", "value": "section-14"}, {"text": "section-15", "value": "section-15"}, {"text": "section-16", "value": "section-16"}, {"text": "section-17", "value": "section-17"}, {"text": "section-18", "value": "section-18"}, {"text": "section-19", "value": "section-19"}, {"text": "section-20", "value": "section-20"}, {"text": "section-21", "value": "section-21"}, {"text": "section-22", "value": "section-22"}, {"text": "section-23", "value": "section-23"}]}',
+  display: 'raw' }
+D-FIELD: sectionImage
+{ special: 'file', interface: 'file-image', display: 'image' }
+D-FIELD: pageId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template": "{{pageHostPath}}"}' }
+D-FIELD: items
+{ special: 'o2m',
+  interface: 'list-o2m',
+  options: '{"template": "{{itemTitle}} ({{itemLinkText}})"}',
+  display: 'raw' }
+D-FIELD: sectionLinkNewTab
+{ special: 'cast-boolean', interface: 'boolean' }
+D-FIELD: sectionText2
+{ interface: 'input-rich-text-md', display: 'raw' }
+D-FIELD: sectionImage2
+{ special: 'file', interface: 'file-image', display: 'image' }
+D-FIELD: groupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}' }
+D-REL: To One:  ws_section.sectionImage                                       => directus_files.id
+D-REL: To One:  ws_section.pageId              (ws_page.sections)             => ws_page.id
+D-REL: To One:  ws_section.sectionImage2                                      => directus_files.id
+D-REL: To One:  ws_section.groupId                                            => group.id
+D-REL: To Many: ws_section.id                  (ws_section.items)             => ws_section_item.sectionId      onDeselect(nullify) 
+P-REL: To One:  ws_section.groupId             (ws_section.group)             => group.id                       index(ws_section_groupid_foreign)        
+P-REL: To One:  ws_section.pageId              (ws_section.page)              => ws_page.id                     index(ws_section_pageid_foreign)         
+P-REL: To One:  ws_section.sectionImage2Id     (ws_section.sectionImage2)     => directus_files.id              index(ws_section_sectionimage2_foreign)  tag(directus_filesTows_section_sectionImage2)
+P-REL: To One:  ws_section.sectionImageId      (ws_section.sectionImage)      => directus_files.id              index(ws_section_sectionimage_foreign)   tag(directus_filesTows_section_sectionImage)
+P-REL: To Many: ws_section.id                  (ws_section.items)             => ws_section_item.sectionId                                               
+
+D-COLLECTION: ws_section_item
+D-FIELD: sectionId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template": "{{pageId.pagePath}} {{sectionTitle}} {{sectionType}}"}',
+  display: 'related-values' }
+D-FIELD: itemImage
+{ special: 'file', interface: 'file-image', display: 'image' }
+D-FIELD: itemLinkText
+{ interface: 'input', display: 'raw' }
+D-FIELD: itemLinkNewTab
+{ special: 'cast-boolean', interface: 'boolean' }
+D-FIELD: groupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}' }
+D-REL: To One:  ws_section_item.sectionId      (ws_section.items)             => ws_section.id
+D-REL: To One:  ws_section_item.itemImage                                     => directus_files.id
+D-REL: To One:  ws_section_item.groupId                                       => group.id
+P-REL: To One:  ws_section_item.groupId        (ws_section_item.group)        => group.id                       index(ws_section_item_groupid_foreign)   
+P-REL: To One:  ws_section_item.itemImageId    (ws_section_item.itemImage)    => directus_files.id              index(ws_section_item_itemimage_foreign) 
+P-REL: To One:  ws_section_item.sectionId      (ws_section_item.section)      => ws_section.id                  index(ws_section_item_sectionid_foreign) 
+
+D-COLLECTION: ws_website
+D-FIELD: groupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}',
+  display: 'related-values' }
+D-FIELD: twitterCardType
+{ interface: 'select-dropdown',
+  options: '{"choices": [{"text": "summary", "value": "summary"}]}' }
+D-FIELD: favicon
+{ special: 'file', interface: 'file-image', display: 'image' }
+D-FIELD: landscapeLogo
+{ special: 'file', interface: 'file-image', display: 'image' }
+D-FIELD: footerLandscapeLogo
+{ special: 'file', interface: 'file-image', display: 'image' }
+D-FIELD: pages
+{ special: 'o2m',
+  interface: 'list-o2m',
+  options: '{"template": "{{pageShortName}} ({{pagePath}})"}',
+  display: 'related-values',
+  display_options: '{"template": "{{pageShortName}} ({{pagePath}})"}' }
+D-FIELD: links
+{ special: 'o2m',
+  interface: 'list-o2m',
+  options: '{"template": "{{linkType}} : {{text}}"}' }
+D-REL: To One:  ws_website.groupId                                            => group.id
+D-REL: To One:  ws_website.favicon                                            => directus_files.id
+D-REL: To One:  ws_website.landscapeLogo                                      => directus_files.id
+D-REL: To One:  ws_website.footerLandscapeLogo                                => directus_files.id
+D-REL: To Many: ws_website.id                  (ws_website.pages)             => ws_page.websiteId              onDeselect(nullify) sort(sort)
+D-REL: To Many: ws_website.id                  (ws_website.links)             => ws_link.websiteId              onDeselect(nullify) 
+P-REL: To One:  ws_website.faviconId           (ws_website.favicon)           => directus_files.id              index(ws_website_favicon_foreign)        tag(directus_filesTows_website_favicon)
+P-REL: To One:  ws_website.footerLandscapeLogoId (ws_website.footerLandscapeLogo) => directus_files.id              index(ws_website_footerlandscapelogo_foreign) tag(directus_filesTows_website_footerLandscapeLogo)
+P-REL: To One:  ws_website.groupId             (ws_website.group)             => group.id                       index(ws_website_groupid_foreign)        
+P-REL: To One:  ws_website.landscapeLogoId     (ws_website.landscapeLogo)     => directus_files.id              index(ws_website_landscapelogo_foreign)  tag(directus_filesTows_website_landscapeLogo)
+P-REL: To Many: ws_website.id                  (ws_website.links)             => ws_link.websiteId                                                       
+P-REL: To Many: ws_website.id                  (ws_website.pages)             => ws_page.websiteId                                                       
+
+D-COLLECTION: hero
+D-FIELD: image
+{ special: 'file', interface: 'file-image', display: 'image' }
+D-REL: To One:  hero.image                                                    => directus_files.id
+
+D-COLLECTION: header
+D-FIELD: image
+{ special: 'file', interface: 'file-image', display: 'raw' }
+D-FIELD: links
+{ special: 'cast-json',
+  interface: 'list',
+  options:
+   '{"fields": [{"meta": {"type": "text", "field": "title", "interface": "input"}, "name": "title", "type": "text", "field": "title"}, {"meta": {"type": "text", "field": "href", "interface": "input"}, "name": "href", "type": "text", "field": "href"}]}',
+  display: 'labels' }
+D-REL: To One:  header.image                                                  => directus_files.id
+
+D-COLLECTION: footer
+D-FIELD: image
+{ special: 'file', interface: 'file-image', display: 'image' }
+D-FIELD: socialLinks
+{ special: 'cast-json',
+  interface: 'list',
+  options:
+   '{"fields": [{"meta": {"type": "string", "field": "title", "interface": "input"}, "name": "title", "type": "string", "field": "title"}, {"meta": {"type": "string", "field": "url", "interface": "input"}, "name": "url", "type": "string", "field": "url"}, {"meta": {"type": "boolean", "field": "newTab", "interface": "boolean"}, "name": "newTab", "type": "boolean", "field": "newTab"}], "template": null}',
+  display: 'raw' }
+D-FIELD: legalLinks
+{ special: 'cast-json',
+  interface: 'list',
+  options:
+   '{"fields": [{"meta": {"type": "string", "field": "title", "interface": "input"}, "name": "title", "type": "string", "field": "title"}, {"meta": {"type": "string", "field": "url", "interface": "input"}, "name": "url", "type": "string", "field": "url"}, {"meta": {"type": "boolean", "field": "newTab", "interface": "boolean"}, "name": "newTab", "type": "boolean", "field": "newTab"}]}',
+  display: 'raw' }
+D-REL: To One:  footer.image                                                  => directus_files.id
+
+D-COLLECTION: terms
+
+D-COLLECTION: privacy
+
+D-COLLECTION: directus_users
+D-FIELD: currentGroupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
+D-FIELD: groupMembs
+{ special: 'o2m',
+  interface: 'list-o2m',
+  options:
+   '{"template":"{{gid.groupDisplayName}} ({{gid.groupname}}) : {{groupRoleId.groupRole}} ({{groupMembStatusId.groupMembStatus}})","enableSelect":false}' }
+D-REL: To One:  directus_users.currentGroupId                                 => group.id
+D-REL: To Many: directus_users.id                                             => group_memb.uid                 onDeselect(delete) 
+P-REL: To One:  directus_users.currentGroupId  (directus_users.currentGroup)  => group.id                       index(directus_users_currentgroupid_foreign) tag(directus_users_currentGroupIdTogroup)
+P-REL: To One:  directus_users.role            (directus_users.roleRel)       => directus_roles.id              index(directus_users_role_foreign)       
+P-REL: To Many: directus_users.id              (directus_users.filesModified) => directus_files.modified_by                                              tag(directus_files_modified_byTodirectus_users)
+P-REL: To Many: directus_users.id              (directus_users.filesUploaded) => directus_files.uploaded_by                                              tag(directus_files_uploaded_byTodirectus_users)
+P-REL: To Many: directus_users.id              (directus_users.notificationsReceived) => directus_notifications.recipient                                          tag(directus_notifications_recipientTodirectus_users)
+P-REL: To Many: directus_users.id              (directus_users.notificationsSent) => directus_notifications.sender                                           tag(directus_notifications_senderTodirectus_users)
+P-REL: To Many: directus_users.id              (directus_users.presets)       => directus_presets.user                                                   
+P-REL: To Many: directus_users.id              (directus_users.sessions)      => directus_sessions.user                                                  
+P-REL: To Many: directus_users.id              (directus_users.groupMembs)    => group_memb.uid                                                          tag(directus_usersTogroup_memb_uid)
+
+D-COLLECTION: directus_files
+D-FIELD: groupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
+D-REL: To One:  directus_files.groupId                                        => group.id
+D-REL: To Many: directus_files.id                                             => hero.image                     onDeselect(nullify) 
+D-REL: To Many: directus_files.id                                             => header.image                   onDeselect(nullify) 
+D-REL: To Many: directus_files.id                                             => footer.image                   onDeselect(nullify) 
+D-REL: To Many: directus_files.id                                             => ws_website.favicon             onDeselect(nullify) 
+D-REL: To Many: directus_files.id                                             => ws_website.landscapeLogo       onDeselect(nullify) 
+D-REL: To Many: directus_files.id                                             => ws_website.footerLandscapeLogo onDeselect(nullify) 
+D-REL: To Many: directus_files.id                                             => ws_page.pageMetaImage          onDeselect(nullify) 
+D-REL: To Many: directus_files.id                                             => ws_section.sectionImage        onDeselect(nullify) 
+D-REL: To Many: directus_files.id                                             => ws_section_item.itemImage      onDeselect(nullify) 
+D-REL: To Many: directus_files.id                                             => ws_section.sectionImage2       onDeselect(nullify) 
+P-REL: To One:  directus_files.folder          (directus_files.folderRel)     => directus_folders.id            index(directus_files_folder_foreign)     
+P-REL: To One:  directus_files.groupId         (directus_files.group)         => group.id                       index(directus_files_groupid_foreign)    
+P-REL: To One:  directus_files.modified_by     (directus_files.usersModifiedBy) => directus_users.id              index(directus_files_modified_by_foreign) tag(directus_files_modified_byTodirectus_users)
+P-REL: To One:  directus_files.uploaded_by     (directus_files.usersUploadedBy) => directus_users.id              index(directus_files_uploaded_by_foreign) tag(directus_files_uploaded_byTodirectus_users)
+P-REL: To Many: directus_files.id              (directus_files.settingsByProjectLogo) => directus_settings.project_logo                                          tag(directus_filesTodirectus_settings_project_logo)
+P-REL: To Many: directus_files.id              (directus_files.settingsByPublicBackground) => directus_settings.public_background                                          tag(directus_filesTodirectus_settings_public_background)
+P-REL: To Many: directus_files.id              (directus_files.settingsByPublicForeground) => directus_settings.public_foreground                                          tag(directus_filesTodirectus_settings_public_foreground)
+P-REL: To Many: directus_files.id              (directus_files.pages)         => ws_page.pageMetaImageId                                                 
+P-REL: To Many: directus_files.id              (directus_files.sectionsBySectionImage2) => ws_section.sectionImage2Id                                              tag(directus_filesTows_section_sectionImage2)
+P-REL: To Many: directus_files.id              (directus_files.sectionsBySectionImages) => ws_section.sectionImageId                                               tag(directus_filesTows_section_sectionImage)
+P-REL: To Many: directus_files.id              (directus_files.sectionItems)  => ws_section_item.itemImageId                                             
+P-REL: To Many: directus_files.id              (directus_files.websitesByFavicon) => ws_website.faviconId                                                    tag(directus_filesTows_website_favicon)
+P-REL: To Many: directus_files.id              (directus_files.websitesByFooterLandscapeLogo) => ws_website.footerLandscapeLogoId                                          tag(directus_filesTows_website_footerLandscapeLogo)
+P-REL: To Many: directus_files.id              (directus_files.websitesByLandscapeLogo) => ws_website.landscapeLogoId                                              tag(directus_filesTows_website_landscapeLogo)
+
+D-COLLECTION: directus_folders
+D-FIELD: groupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
+D-REL: To One:  directus_folders.groupId                                      => group.id
+P-REL: To One:  directus_folders.groupId       (directus_folders.group)       => group.id                       index(directus_folders_groupid_foreign)  
+P-REL: To One:  directus_folders.parent        (directus_folders.folder)      => directus_folders.id            index(directus_folders_parent_foreign)   tag(directus_foldersTodirectus_folders)
+P-REL: To Many: directus_folders.id            (directus_folders.files)       => directus_files.folder                                                   
+P-REL: To Many: directus_folders.parent        (directus_folders.otherFolders) => directus_folders.parent                                                 tag(directus_foldersTodirectus_folders)
+P-REL: To Many: directus_folders.id            (directus_folders.settings)    => directus_settings.storage_default_folder                                          
+
+D-COLLECTION: directus_roles
+D-FIELD: groupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
+D-REL: To One:  directus_roles.groupId                                        => group.id
+P-REL: To One:  directus_roles.groupId         (directus_roles.group)         => group.id                       index(directus_roles_groupid_foreign)    
+P-REL: To Many: directus_roles.id              (directus_roles.permissions)   => directus_permissions.role                                               
+P-REL: To Many: directus_roles.id              (directus_roles.presets)       => directus_presets.role                                                   
+P-REL: To Many: directus_roles.id              (directus_roles.shares)        => directus_shares.role                                                    
+P-REL: To Many: directus_roles.id              (directus_roles.users)         => directus_users.role                                                     
+

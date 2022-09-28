@@ -1,25 +1,32 @@
-const fs = require("fs");
-const fsPromises = fs.promises;
-const directusClient = require("./DirectusClient");
+// const fs = require("fs");
+// const fsPromises = fs.promises;
+// const directusClient = require("./DirectusClient");
 // console.log("directusClient", directusClient);
-const liquidjs = require("liquidjs");
+// const liquidjs = require("liquidjs");
+import * as vclib from "vc-lib";
+console.log("vclib", vclib);
+// const PrismaDatabase = vclib.PrismaDatabase;
+const DirectusDatabase = vclib.DirectusDatabase;
+// console.log("PrismaDatabase", PrismaDatabase, PrismaDatabase.constructor.name);
+// const prismaDb = new PrismaDatabase();
+const directusDb = new DirectusDatabase();
 // console.log("Liquid", Liquid);
 
-const config = {
-  templateDir: "templates"
-};
+// const config = {
+//   templateDir: "templates"
+// };
 
-const liquidEngine = new liquidjs.Liquid({
-  cache: false,
-  root: config.templateDir + "/pages",
-  layouts: config.templateDir + "/layouts",
-  partials: config.templateDir + "/partials",
-  extname: ".html"
-});
+// const liquidEngine = new liquidjs.Liquid({
+//   cache: false,
+//   root: config.templateDir + "/pages",
+//   layouts: config.templateDir + "/layouts",
+//   partials: config.templateDir + "/partials",
+//   extname: ".html"
+// });
 
 let vcWebsite = {
-  config: config,
-  liquidEngine: liquidEngine,
+  // config: config,
+  // liquidEngine: liquidEngine,
 
   getWebPageDataFromRequest(data, req, websiteRoot) {
     console.log("XXX getWebPageDataFromRequest");
@@ -98,23 +105,25 @@ let vcWebsite = {
     // console.log("XXX getWebPageDataFromRequest", data);
   },
 
-  async getWebPageDataFromDatabase(data, pageHostPath) {
-    console.log("XXX getWebPageDataFromDatabase BEFORE");
-    await vcWebsite.getWebPageDataFromAPI(data, pageHostPath); // TEMPORARY
-    console.log("XXX getWebPageDataFromDatabase AFTER");
-  },
+  // async getWebPageDataFromDatabase(data, pageHostPath) {
+  //   console.log("XXX getWebPageDataFromDatabase BEFORE");
+  //   await vcWebsite.getWebPageDataFromAPI(data, pageHostPath); // TEMPORARY
+  //   console.log("XXX getWebPageDataFromDatabase AFTER");
+  // },
 
-  async getWebPageDataFromAPI(data, pageHostPath) {
+  async getWebPageDataFromDB(dbname, data, pageHostPath) {
+    // const db = (dbname === "directus") ? directusDb : prismaDb;
+    const db = directusDb;
     if (data.url && data.url.match(/^\/_/)) {
       return;
     }
 
-    data.page = await directusClient.getObject(
+    data.page = await db.getObject(
       "ws_page",
       { pageHostPath: pageHostPath },
-      "id,pageHostPath,htmlTitle," +
-        "pageMetaTitle,pageMetaDescription,websiteId,isLoginRequired," +
-        "pageMetaImage.filename_disk,pageMetaImage.title,pageMetaImage.width,pageMetaImage.height" // pageMetaImage.id,pageMetaImage.filename_download,pageMetaImage.folder,
+      [ "id", "pageHostPath", "htmlTitle",
+        "pageMetaTitle", "pageMetaDescription", "websiteId", "isLoginRequired",
+        "pageMetaImage.filename_disk", "pageMetaImage.title", "pageMetaImage.width", "pageMetaImage.height" ] // pageMetaImage.id", "pageMetaImage.filename_download", "pageMetaImage.folder,
     );
 
     let websiteParams = {};
@@ -131,16 +140,16 @@ let vcWebsite = {
     // console.log("XXX websiteParams %j", websiteParams);
 
     //if (data.page && data.page.websiteId) {
-    let website = await directusClient.getObject(
+    let website = await db.getObject(
       "ws_website",
       websiteParams,
-      "domain,baseUrl,baseApiUrl,copyrightName,htmlTitleSuffix,twitterCardType,twitterUsername," +
-        "links.id,links.sort,links.linkType,links.text,links.url,links.newTab," +
-        // "templates.templateName,templates.templateText," +
-        "pages.pageShortName,pages.pagePath,pages.isPrimaryNav,pages.isLoginRequired," +
-        "favicon.filename_disk,favicon.title,favicon.width,favicon.height," + // favicon.id,favicon.filename_download,favicon.folder,
-        "landscapeLogo.filename_disk,landscapeLogo.title,landscapeLogo.width,landscapeLogo.height," + // landscapeLogo.id,landscapeLogo.filename_download,landscapeLogo.folder,
-        "footerLandscapeLogo.filename_disk,footerLandscapeLogo.title,footerLandscapeLogo.width,footerLandscapeLogo.height"
+      [ "domain", "baseUrl", "baseApiUrl", "copyrightName", "htmlTitleSuffix", "twitterCardType", "twitterUsername",
+        "links.id", "links.sort", "links.linkType", "links.text", "links.url", "links.newTab",
+        // "templates.templateName", "templates.templateText",
+        "pages.pageShortName", "pages.pagePath", "pages.isPrimaryNav", "pages.isLoginRequired",
+        "favicon.filename_disk", "favicon.title", "favicon.width", "favicon.height", // favicon.id", "favicon.filename_download", "favicon.folder,
+        "landscapeLogo.filename_disk", "landscapeLogo.title", "landscapeLogo.width", "landscapeLogo.height", // landscapeLogo.id", "landscapeLogo.filename_download", "landscapeLogo.folder,
+        "footerLandscapeLogo.filename_disk", "footerLandscapeLogo.title", "footerLandscapeLogo.width", "footerLandscapeLogo.height" ]
     );
     // console.log("XXX hostname [%s] origDomain [%s]", data.hostname, data.origDomain);
     // console.log("XXX A baseUrl [%s] baseApiUrl [%s]", website.baseUrl, website.baseApiUrl);
@@ -161,16 +170,16 @@ let vcWebsite = {
     //   data.pageHostPath = hostname + (url || "/");
     //   hostPath = data.hostname + (data.url || "/");
     //   websiteParams =  { hostPath: hostPath };
-    //   website = await directusClient.getObject(
+    //   website = await db.getObject(
     //     "ws_website",
     //     websiteParams,
-    //     "domain,baseUrl,baseApiUrl,copyrightName,htmlTitleSuffix,twitterCardType,twitterUsername," +
-    //       "links.id,links.sort,links.linkType,links.text,links.url,links.newTab," +
-    //       // "templates.templateName,templates.templateText," +
-    //       "pages.pageShortName,pages.pagePath,pages.isPrimaryNav,pages.isLoginRequired," +
-    //       "favicon.filename_disk,favicon.title,favicon.width,favicon.height," + // favicon.id,favicon.filename_download,favicon.folder,
-    //       "landscapeLogo.filename_disk,landscapeLogo.title,landscapeLogo.width,landscapeLogo.height," + // landscapeLogo.id,landscapeLogo.filename_download,landscapeLogo.folder,
-    //       "footerLandscapeLogo.filename_disk,footerLandscapeLogo.title,footerLandscapeLogo.width,footerLandscapeLogo.height"
+    //     "domain", "baseUrl", "baseApiUrl", "copyrightName", "htmlTitleSuffix", "twitterCardType", "twitterUsername",
+    //       "links.id", "links.sort", "links.linkType", "links.text", "links.url", "links.newTab",
+    //       // "templates.templateName", "templates.templateText",
+    //       "pages.pageShortName", "pages.pagePath", "pages.isPrimaryNav", "pages.isLoginRequired",
+    //       "favicon.filename_disk", "favicon.title", "favicon.width", "favicon.height", // favicon.id", "favicon.filename_download", "favicon.folder,
+    //       "landscapeLogo.filename_disk", "landscapeLogo.title", "landscapeLogo.width", "landscapeLogo.height", // landscapeLogo.id", "landscapeLogo.filename_download", "landscapeLogo.folder,
+    //       "footerLandscapeLogo.filename_disk", "footerLandscapeLogo.title", "footerLandscapeLogo.width", "footerLandscapeLogo.height"
     //   );
     // }
 
@@ -182,15 +191,15 @@ let vcWebsite = {
     //}
 
     if (data.page && data.page.id) {
-      data.sections = await directusClient.getObjects(
+      data.sections = await db.getObjects(
         "ws_section",
         { pageId: data.page.id },
-        "id,sectionType,sectionTitle,sectionSubtitle,sectionText,sectionText2,templateName," +
-          "sectionLinkUrl,sectionLinkText,sectionLinkNewTab," +
-          "sectionImage2.filename_disk,sectionImage.filename_disk,sectionImage.title,sectionImage.width,sectionImage.height," + // sectionImage.id,sectionImage.filename_download,sectionImage.folder,
-          "items.id,items.itemType,items.itemTitle,items.itemTitle2,items.itemSubtitle,items.itemSubtitle2,items.itemText," +
-          "items.itemLinkUrl,items.itemLinkText,items.itemLinkNewTab," +
-          "items.itemImage.filename_disk,items.itemImage.title,items.itemImage.width,items.itemImage.height" // items.itemImage.id,items.itemImage.filename_download,items.itemImage.folder,
+        [ "id", "sectionType", "sectionTitle", "sectionSubtitle", "sectionText", "sectionText2,templateName",
+          "sectionLinkUrl", "sectionLinkText", "sectionLinkNewTab",
+          "sectionImage2.filename_disk", "sectionImage.filename_disk", "sectionImage.title", "sectionImage.width", "sectionImage.height", // sectionImage.id", "sectionImage.filename_download", "sectionImage.folder,
+          "items.id", "items.itemType", "items.itemTitle", "items.itemTitle2,items.itemSubtitle", "items.itemSubtitle2,items.itemText",
+          "items.itemLinkUrl", "items.itemLinkText", "items.itemLinkNewTab",
+          "items.itemImage.filename_disk", "items.itemImage.title", "items.itemImage.width", "items.itemImage.height" ] // items.itemImage.id", "items.itemImage.filename_download", "items.itemImage.folder,
       );
       // console.log("sections [%s]", data.sections?.length);
       // console.log("sections", JSON.stringify(data.sections, null, 2));

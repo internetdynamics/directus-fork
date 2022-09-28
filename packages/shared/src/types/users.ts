@@ -38,4 +38,7 @@ export type User = {
 	title: string | null;
 	email_notifications: boolean;
 	currentGroupId?: number;
+	currentGroupRoleId?: number;
+	currentGroupMembStatusId?: number;
+	sysRoleId?: number;
 };

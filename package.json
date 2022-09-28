@@ -15,6 +15,7 @@
 		"dev": "pnpm -r dev",
 		"dev:api": "pnpm --filter directus dev",
 		"dev:app": "pnpm --filter @directus/app dev",
+		"dev:vclib": "pnpm --filter vc-lib dev",
 		"build": "pnpm -r build",
 		"test:e2e": "jest tests -c tests/jest.config.js",
 		"test:e2e:watch": "jest tests -c tests/jest.config.js --watch",

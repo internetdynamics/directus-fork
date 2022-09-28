@@ -20,7 +20,7 @@ export async function getServerSideProps(context) {
   let props = {};
   let req = context.req;
   vcWebsite.getWebPageDataFromRequest(props, req);
-  await vcWebsite.getWebPageDataFromDatabase(props, props.pageHostPath);
+  await vcWebsite.getWebPageDataFromDB("prisma", props, props.pageHostPath);
 
   if (JSON.stringify(props.page) === "{}") {
     return { notFound: true };

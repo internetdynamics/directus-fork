@@ -138,7 +138,7 @@ export async function getServerSideProps(context) {
   let req = context.req;
   props["csrfToken"] = await getCsrfToken(context);
   vcWebsite.getWebPageDataFromRequest(props, req);
-  await vcWebsite.getWebPageDataFromDatabase(props, props.pageHostPath);
+  await vcWebsite.getWebPageDataFromDB("prisma", props, props.pageHostPath);
   return { props: props };
 }
 

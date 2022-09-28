@@ -86,133 +86,169 @@ export default defineInterface({
       },
     ];
 
-    return [
-      {
-        field: "layout",
-        name: "$t:layout",
-        schema: {
-          default_value: "list",
-        },
-        meta: {
-          interface: "select-dropdown",
-          options: {
-            choices: [
-              {
-                text: "$t:list",
-                value: "list",
-              },
-              {
-                text: "$t:table",
-                value: "table",
-              },
-            ],
-          },
-          width: "half",
-        },
-      },
-      ...(options.layout === "table" ? tableOptions : listOptions),
-      {
-        field: "enableCreate",
-        name: "$t:creating_items",
-        schema: {
-          default_value: true,
-        },
-        meta: {
-          interface: "boolean",
-          options: {
-            label: "$t:enable_create_button",
-          },
-          width: "half",
-        },
-      },
-      {
-        field: "enableSelect",
-        name: "$t:selecting_items",
-        schema: {
-          default_value: true,
-        },
-        meta: {
-          interface: "boolean",
-          options: {
-            label: "$t:enable_select_button",
-          },
-          width: "half",
-        },
-      },
-      {
-        field: "limit",
-        name: "$t:per_page",
-        type: "integer",
-        meta: {
-          interface: "input",
-          width: "half",
-        },
-        schema: {
-          default_value: 15,
-        },
-      },
-      {
-        field: "allowDuplicates",
-        name: "$t:allow_duplicates",
-        schema: {
-          default_value: false,
-        },
-        meta: {
-          interface: "boolean",
-          width: "half",
-        },
-      },
-      {
-        field: "filter",
-        name: "$t:filter",
-        type: "json",
-        meta: {
-          interface: "system-filter",
-          options: {
-            collectionName: related_collection,
-          },
-          conditions: [
-            {
-              rule: {
-                enableSelect: {
-                  _eq: false,
-                },
-              },
-              hidden: true,
-            },
-          ],
-        },
-      },
-      {
-        field: "enableSearchFilter",
-        name: "$t:search_filter",
-        schema: {
-          default_value: false,
-        },
-        meta: {
-          interface: "boolean",
-          options: {
-            label: "$t:enable_search_filter",
-          },
-          width: "half",
-        },
-      },
-      {
-        field: "enableLink",
-        name: "$t:item_link",
-        schema: {
-          default_value: false,
-        },
-        meta: {
-          interface: "boolean",
-          options: {
-            label: "$t:show_link_to_item",
-          },
-          width: "half",
-        },
-      },
-    ];
-  },
-  recommendedDisplays: ["related-values"],
-  preview: PreviewSVG,
+		return [
+			{
+				field: 'layout',
+				name: '$t:layout',
+				schema: {
+					default_value: 'list',
+				},
+				meta: {
+					interface: 'select-dropdown',
+					options: {
+						choices: [
+							{
+								text: '$t:list',
+								value: 'list',
+							},
+							{
+								text: '$t:table',
+								value: 'table',
+							},
+						],
+					},
+					width: 'half',
+				},
+			},
+			...(options.layout === 'table' ? tableOptions : listOptions),
+			{
+				field: 'enableCreate',
+				name: '$t:creating_items',
+				schema: {
+					default_value: true,
+				},
+				meta: {
+					interface: 'boolean',
+					options: {
+						label: '$t:enable_create_button',
+					},
+					width: 'half',
+				},
+			},
+			{
+				field: 'enableSelect',
+				name: '$t:selecting_items',
+				schema: {
+					default_value: true,
+				},
+				meta: {
+					interface: 'boolean',
+					options: {
+						label: '$t:enable_select_button',
+					},
+					width: 'half',
+				},
+			},
+			{
+				field: 'limit',
+				name: '$t:per_page',
+				type: 'integer',
+				meta: {
+					interface: 'input',
+					width: 'half',
+				},
+				schema: {
+					default_value: 15,
+				},
+			},
+			{
+				field: 'junctionFieldLocation',
+				name: '$t:junction_field_location',
+				type: 'string',
+				schema: {
+					default_value: 'bottom',
+				},
+				meta: {
+					interface: 'select-dropdown',
+					options: {
+						choices: [
+							{
+								value: 'top',
+								text: '$t:top',
+							},
+							{
+								value: 'bottom',
+								text: '$t:bottom',
+							},
+						],
+					},
+					width: 'half',
+				},
+			},
+
+			{
+				field: 'allowDuplicates',
+				name: '$t:allow_duplicates',
+				schema: {
+					default_value: false,
+				},
+				meta: {
+					interface: 'boolean',
+					width: 'half',
+				},
+			},
+			{
+				field: 'filter',
+				name: '$t:filter',
+				type: 'json',
+				meta: {
+					interface: 'system-filter',
+					options: {
+						collectionName: related_collection,
+					},
+					conditions: [
+						{
+							rule: {
+								enableSelect: {
+									_eq: false,
+								},
+							},
+							hidden: true,
+						},
+					],
+				},
+			},
+			{
+				field: 'enableSearchFilter',
+				name: '$t:search_filter',
+				schema: {
+					default_value: false,
+				},
+				meta: {
+					interface: 'boolean',
+					options: {
+						label: '$t:enable_search_filter',
+					},
+					width: 'half',
+					hidden: true,
+					conditions: [
+						{
+							rule: {
+								layout: {
+									_eq: 'table',
+								},
+							},
+							hidden: false,
+						},
+					],
+				},
+			},
+			{
+				field: 'enableLink',
+				name: '$t:item_link',
+				schema: {
+					default_value: false,
+				},
+				meta: {
+					interface: 'boolean',
+					options: {
+						label: '$t:show_link_to_item',
+					},
+					width: 'half',
+				},
+			},
+		];
+	},
+	recommendedDisplays: ['related-values'],
+	preview: PreviewSVG,
 });

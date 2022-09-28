@@ -49,10 +49,13 @@ export const useUserStore = defineStore({
 					'role.id',
 					'role.enforce_tfa',
 					'currentGroupId',
+					'currentGroupRoleId',
+					'currentGroupMembStatusId',
+					'sysRoleId',
 				];
 
 				const { data } = await api.get(`/users/me`, { params: { fields } });
-
+				// console.log("XXX stores/user", data);
 				this.currentUser = data.data;
 			} catch (error: any) {
 				this.error = error;

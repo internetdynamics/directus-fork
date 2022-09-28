@@ -1,0 +1,14 @@
+[
+  {
+    "id": "1dfb581c-0d14-433f-afee-9cb0a722df4d",
+    "name": "group-photos",
+    "parent": null,
+    "groupId": null
+  },
+  {
+    "id": "6ba2c44a-cab9-4818-97d7-16a9ee523ff7",
+    "name": "cats",
+    "parent": null,
+    "groupId": null
+  }
+]

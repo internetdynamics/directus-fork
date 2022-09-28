@@ -172,4 +172,22 @@ export default defineModule({
 			beforeEnter: checkForSystem,
 		},
 	],
+	preRegisterCheck(user, permissions) {
+	  const admin = user.role.admin_access;
+	//   console.log("XXX user", user);
+	//   console.log("XXX permissions", permissions);
+
+		//   if (admin) {
+		// 	return true;
+		//   } else {
+		// 	return false;
+		//   }
+	  
+	  return true;
+
+	  //   const permission = permissions.find(
+	  //   	(permission) => permission.collection === 'directus_dashboards' && permission.action === 'read'
+	  //   );
+	  // return !!permission;
+	},
 });

@@ -4,19 +4,13 @@ import { defineOperationApp } from "@directus/shared/utils";
 import { i18n } from "@/lang";
 
 export default defineOperationApp({
-  id: "exec",
-  icon: "code",
-  name: "$t:operations.exec.name",
-  description: "$t:operations.exec.description",
-  overview: () => [],
-  // overview: ({ code }) => [
-  // 	{
-  // 		label: '$t:code',
-  // 		text: code,
-  // 	},
-  // ],
-  options: () => {
-    const { t } = i18n.global;
+	id: 'exec',
+	icon: 'code',
+	name: '$t:operations.exec.name',
+	description: '$t:operations.exec.description',
+	overview: () => [],
+	options: () => {
+		const { t } = i18n.global;
 
     const serverStore = useServerStore();
 
