@@ -46,7 +46,7 @@ export class DatabaseFileManager {
     let objects = await db.getObjects(table, params, columns, options);
     // console.log("DatabaseFileManager.exportFile(%s) lines: %d", filepath, objects.length);
     let fileext = path.extname(filepath).substring(1);
-    console.log("DatabaseFileManager.exportFile() fileext=[%s]", fileext);
+    // console.log("DatabaseFileManager.exportFile() fileext=[%s]", fileext);
     if (fileext === "json") {
       // let json = JSON.stringify(objects, null, 2);
       // let json = JSON.stringify(objects, (key, value) =>

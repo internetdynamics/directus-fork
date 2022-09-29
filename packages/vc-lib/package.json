@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
   "scripts": {
     "build": "rm -rf dist && tsc",
     "dev": "tsc --watch"
@@ -16,7 +19,7 @@
   },
   "dependencies": {
     "@directus/sdk": "^10.1.4",
-    "@prisma/client": "^4.2.1",
+    "@prisma/client": "^4.3.0",
     "@types/node": "16.11.9",
     "child_process": "^1.0.2",
     "dotenv": "^16.0.1",

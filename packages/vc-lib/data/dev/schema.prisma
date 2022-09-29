@@ -314,15 +314,10 @@ model directus_roles {
   enforce_tfa  Boolean                @default(false)
   admin_access Boolean                @default(false)
   app_access   Boolean                @default(true)
-  groupId      Int?                   @db.UnsignedInt
-  groupRole    String?                @db.VarChar(255)
-  group        group?                 @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "directus_roles_groupid_foreign")
   permissions  directus_permissions[]
   presets      directus_presets[]
   shares       directus_shares[]
   users        directus_users[]
-
-  @@index([groupId], map: "directus_roles_groupid_foreign")
 }
 
 model directus_sessions {
@@ -396,63 +391,71 @@ model directus_shares {
 }
 
 model directus_users {
-  id                    String                   @id @db.Char(36)
-  first_name            String?                  @db.VarChar(50)
-  last_name             String?                  @db.VarChar(50)
-  email                 String?                  @unique(map: "directus_users_email_unique") @db.VarChar(128)
-  password              String?                  @db.VarChar(255)
-  location              String?                  @db.VarChar(255)
-  title                 String?                  @db.VarChar(50)
-  description           String?                  @db.Text
-  tags                  String?                  @db.LongText
-  avatar                String?                  @db.Char(36)
-  language              String?                  @db.VarChar(255)
-  theme                 String?                  @default("auto") @db.VarChar(20)
-  tfa_secret            String?                  @db.VarChar(255)
-  status                String                   @default("active") @db.VarChar(16)
-  role                  String?                  @db.Char(36)
-  token                 String?                  @unique(map: "directus_users_token_unique") @db.VarChar(255)
-  last_access           DateTime?                @db.Timestamp(0)
-  last_page             String?                  @db.VarChar(255)
-  provider              String                   @default("default") @db.VarChar(128)
-  external_identifier   String?                  @unique(map: "directus_users_external_identifier_unique") @db.VarChar(255)
-  auth_data             String?                  @db.LongText
-  email_notifications   Boolean?                 @default(true)
-  phone                 String?                  @db.VarChar(255)
-  currentGroupId        Int?                     @db.UnsignedInt
-  currentGroup          group?                   @relation("directus_users_currentGroupIdTogroup", fields: [currentGroupId], references: [id], onUpdate: Restrict, map: "directus_users_currentgroupid_foreign")
-  roleRel               directus_roles?          @relation(fields: [role], references: [id], onUpdate: Restrict, map: "directus_users_role_foreign")
-  dashboards            directus_dashboards[]
-  filesModified         directus_files[]         @relation("directus_files_modified_byTodirectus_users")
-  filesUploaded         directus_files[]         @relation("directus_files_uploaded_byTodirectus_users")
-  flows                 directus_flows[]
-  notificationsReceived directus_notifications[] @relation("directus_notifications_recipientTodirectus_users")
-  notificationsSent     directus_notifications[] @relation("directus_notifications_senderTodirectus_users")
-  operations            directus_operations[]
-  panels                directus_panels[]
-  presets               directus_presets[]
-  sessions              directus_sessions[]
-  shares                directus_shares[]
-  donationsCreated      donation[]               @relation("directus_usersTodonation_user_created")
-  donationsUpdated      donation[]               @relation("directus_usersTodonation_user_updated")
-  groupsCreated         group[]                  @relation("directus_usersTogroup_user_created")
-  groupsUpdated         group[]                  @relation("directus_usersTogroup_user_updated")
-  groupMembs            group_memb[]             @relation("directus_usersTogroup_memb_uid")
-  groupMembsCreated     group_memb[]             @relation("directus_usersTogroup_memb_user_created")
-  groupMembsUpdated     group_memb[]             @relation("directus_usersTogroup_memb_user_updated")
-  linksCreated          ws_link[]                @relation("directus_usersTows_link_user_created")
-  linksUpdated          ws_link[]                @relation("directus_usersTows_link_user_updated")
-  pagesCreated          ws_page[]                @relation("directus_usersTows_page_user_created")
-  pagesUpdated          ws_page[]                @relation("directus_usersTows_page_user_updated")
-  sectionsCreated       ws_section[]             @relation("directus_usersTows_section_user_created")
-  sectionsUpdated       ws_section[]             @relation("directus_usersTows_section_user_updated")
-  sectionItemsCreated   ws_section_item[]        @relation("directus_usersTows_section_item_user_created")
-  sectionItemsUpdated   ws_section_item[]        @relation("directus_usersTows_section_item_user_updated")
-  websitesCreated       ws_website[]             @relation("directus_usersTows_website_user_created")
-  websitesUpdated       ws_website[]             @relation("directus_usersTows_website_user_updated")
+  id                                                       String                   @id @db.Char(36)
+  first_name                                               String?                  @db.VarChar(50)
+  last_name                                                String?                  @db.VarChar(50)
+  email                                                    String?                  @unique(map: "directus_users_email_unique") @db.VarChar(128)
+  password                                                 String?                  @db.VarChar(255)
+  location                                                 String?                  @db.VarChar(255)
+  title                                                    String?                  @db.VarChar(50)
+  description                                              String?                  @db.Text
+  tags                                                     String?                  @db.LongText
+  avatar                                                   String?                  @db.Char(36)
+  language                                                 String?                  @db.VarChar(255)
+  theme                                                    String?                  @default("auto") @db.VarChar(20)
+  tfa_secret                                               String?                  @db.VarChar(255)
+  status                                                   String                   @default("active") @db.VarChar(16)
+  role                                                     String?                  @db.Char(36)
+  token                                                    String?                  @unique(map: "directus_users_token_unique") @db.VarChar(255)
+  last_access                                              DateTime?                @db.Timestamp(0)
+  last_page                                                String?                  @db.VarChar(255)
+  provider                                                 String                   @default("default") @db.VarChar(128)
+  external_identifier                                      String?                  @unique(map: "directus_users_external_identifier_unique") @db.VarChar(255)
+  auth_data                                                String?                  @db.LongText
+  email_notifications                                      Boolean?                 @default(true)
+  phone                                                    String?                  @db.VarChar(255)
+  currentGroupId                                           Int?                     @db.UnsignedInt
+  currentGroupRoleId                                       Int?                     @db.UnsignedInt
+  currentGroupMembStatusId                                 Int?                     @db.UnsignedInt
+  sysRoleId                                                Int?                     @db.UnsignedInt
+  currentGroup                                             group?                   @relation("directus_users_currentGroupIdTogroup", fields: [currentGroupId], references: [id], onUpdate: Restrict, map: "directus_users_currentgroupid_foreign")
+  group_memb_status                                        group_memb_status?       @relation(fields: [currentGroupMembStatusId], references: [id], onUpdate: Restrict, map: "directus_users_currentgroupmembstatusid_foreign")
+  group_role_directus_users_currentGroupRoleIdTogroup_role group_role?              @relation("directus_users_currentGroupRoleIdTogroup_role", fields: [currentGroupRoleId], references: [id], onUpdate: Restrict, map: "directus_users_currentgrouproleid_foreign")
+  roleRel                                                  directus_roles?          @relation(fields: [role], references: [id], onUpdate: Restrict, map: "directus_users_role_foreign")
+  group_role_directus_users_sysRoleIdTogroup_role          group_role?              @relation("directus_users_sysRoleIdTogroup_role", fields: [sysRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "directus_users_sysroleid_foreign")
+  dashboards                                               directus_dashboards[]
+  filesModified                                            directus_files[]         @relation("directus_files_modified_byTodirectus_users")
+  filesUploaded                                            directus_files[]         @relation("directus_files_uploaded_byTodirectus_users")
+  flows                                                    directus_flows[]
+  notificationsReceived                                    directus_notifications[] @relation("directus_notifications_recipientTodirectus_users")
+  notificationsSent                                        directus_notifications[] @relation("directus_notifications_senderTodirectus_users")
+  operations                                               directus_operations[]
+  panels                                                   directus_panels[]
+  presets                                                  directus_presets[]
+  sessions                                                 directus_sessions[]
+  shares                                                   directus_shares[]
+  donationsCreated                                         donation[]               @relation("directus_usersTodonation_user_created")
+  donationsUpdated                                         donation[]               @relation("directus_usersTodonation_user_updated")
+  groupsCreated                                            group[]                  @relation("directus_usersTogroup_user_created")
+  groupsUpdated                                            group[]                  @relation("directus_usersTogroup_user_updated")
+  groupMembsCreated                                        group_memb[]             @relation("directus_usersTogroup_memb_user_created")
+  groupMembsUpdated                                        group_memb[]             @relation("directus_usersTogroup_memb_user_updated")
+  linksCreated                                             ws_link[]                @relation("directus_usersTows_link_user_created")
+  linksUpdated                                             ws_link[]                @relation("directus_usersTows_link_user_updated")
+  pagesCreated                                             ws_page[]                @relation("directus_usersTows_page_user_created")
+  pagesUpdated                                             ws_page[]                @relation("directus_usersTows_page_user_updated")
+  sectionsCreated                                          ws_section[]             @relation("directus_usersTows_section_user_created")
+  sectionsUpdated                                          ws_section[]             @relation("directus_usersTows_section_user_updated")
+  sectionItemsCreated                                      ws_section_item[]        @relation("directus_usersTows_section_item_user_created")
+  sectionItemsUpdated                                      ws_section_item[]        @relation("directus_usersTows_section_item_user_updated")
+  websitesCreated                                          ws_website[]             @relation("directus_usersTows_website_user_created")
+  websitesUpdated                                          ws_website[]             @relation("directus_usersTows_website_user_updated")
 
   @@index([currentGroupId], map: "directus_users_currentgroupid_foreign")
   @@index([role], map: "directus_users_role_foreign")
+  @@index([currentGroupMembStatusId], map: "directus_users_currentgroupmembstatusid_foreign")
+  @@index([currentGroupRoleId], map: "directus_users_currentgrouproleid_foreign")
+  @@index([sysRoleId], map: "directus_users_sysroleid_foreign")
 }
 
 model directus_webhooks {
@@ -493,25 +496,30 @@ model donation {
 model group {
   id                 Int                @id @default(autoincrement()) @db.UnsignedInt
   status             String?            @default("published") @db.VarChar(255)
-  sort               Int?
   user_created       String?            @db.Char(36)
   date_created       DateTime?          @db.Timestamp(0)
   user_updated       String?            @db.Char(36)
   date_updated       DateTime?          @db.Timestamp(0)
-  groupname          String?            @unique(map: "group_groupname_ak") @db.VarChar(255)
+  groupname          String             @unique(map: "group_groupname_ak") @db.VarChar(255)
   groupDisplayName   String?            @db.VarChar(255)
   groupDescription   String?            @db.Text
   groupPrefs         String?            @db.LongText
   defaultGroupRoleId Int?               @db.UnsignedInt
+  tags               String?            @db.VarChar(255)
+  domain             String?            @db.VarChar(255)
+  parentGroupId      Int?               @db.UnsignedInt
+  isPublic           Boolean?           @default(true)
+  domainValidated    String?            @db.VarChar(255)
   groupTypeId        Int?               @db.UnsignedInt
   groupRole          group_role?        @relation(fields: [defaultGroupRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_defaultgrouproleid_foreign")
   group_type         group_type?        @relation(fields: [groupTypeId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_grouptypeid_foreign")
+  group              group?             @relation("groupTogroup", fields: [parentGroupId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_parentgroupid_foreign")
   userCreated        directus_users?    @relation("directus_usersTogroup_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_created_foreign")
   userUpdated        directus_users?    @relation("directus_usersTogroup_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_updated_foreign")
   files              directus_files[]
   folders            directus_folders[]
-  roles              directus_roles[]
   usersCurrent       directus_users[]   @relation("directus_users_currentGroupIdTogroup")
+  other_group        group[]            @relation("groupTogroup")
   groupMembs         group_memb[]
   links              ws_link[]
   pages              ws_page[]
@@ -523,11 +531,11 @@ model group {
   @@index([user_created], map: "group_user_created_foreign")
   @@index([user_updated], map: "group_user_updated_foreign")
   @@index([groupTypeId], map: "group_grouptypeid_foreign")
+  @@index([parentGroupId], map: "group_parentgroupid_foreign")
 }
 
 model group_memb {
   id                Int                @id @default(autoincrement()) @db.UnsignedInt
-  sort              Int?
   user_created      String?            @db.Char(36)
   date_created      DateTime?          @db.Timestamp(0)
   user_updated      String?            @db.Char(36)
@@ -536,11 +544,11 @@ model group_memb {
   groupMembStatusId Int?               @db.UnsignedInt
   groupRoleId       Int?               @db.UnsignedInt
   gid               Int?               @db.UnsignedInt
-  uid               String?            @db.Char(36)
-  group             group?             @relation(fields: [gid], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "group_memb_gid_foreign")
+  uid               String             @db.VarChar(36)
+  lastAccessedDate  DateTime?          @db.Timestamp(0)
+  group             group?             @relation(fields: [gid], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_memb_gid_foreign")
   groupMembStatus   group_memb_status? @relation(fields: [groupMembStatusId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_memb_groupmembstatusid_foreign")
   groupRole         group_role?        @relation(fields: [groupRoleId], references: [id], onUpdate: Restrict, map: "group_memb_grouproleid_foreign")
-  user              directus_users?    @relation("directus_usersTogroup_memb_uid", fields: [uid], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "group_memb_uid_foreign")
   userCreated       directus_users?    @relation("directus_usersTogroup_memb_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_memb_user_created_foreign")
   userUpdated       directus_users?    @relation("directus_usersTogroup_memb_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_memb_user_updated_foreign")
 
@@ -553,16 +561,19 @@ model group_memb {
 }
 
 model group_memb_status {
-  id              Int          @id @default(autoincrement()) @db.UnsignedInt
-  groupMembStatus String?      @db.VarChar(255)
+  id              Int              @id @default(autoincrement()) @db.UnsignedInt
+  groupMembStatus String?          @db.VarChar(255)
+  directus_users  directus_users[]
   groupMembs      group_memb[]
 }
 
 model group_role {
-  id         Int          @id @default(autoincrement()) @db.UnsignedInt
-  groupRole  String?      @db.VarChar(255)
-  groups     group[]
-  groupMembs group_memb[]
+  id                                                           Int              @id @default(autoincrement()) @db.UnsignedInt
+  groupRole                                                    String?          @db.VarChar(255)
+  directus_users_directus_users_currentGroupRoleIdTogroup_role directus_users[] @relation("directus_users_currentGroupRoleIdTogroup_role")
+  directus_users_directus_users_sysRoleIdTogroup_role          directus_users[] @relation("directus_users_sysRoleIdTogroup_role")
+  groups                                                       group[]
+  groupMembs                                                   group_memb[]
 }
 
 model group_type {
@@ -731,4 +742,12 @@ model ws_website {
   @@index([landscapeLogoId], map: "ws_website_landscapelogo_foreign")
   @@index([user_created], map: "ws_website_user_created_foreign")
   @@index([user_updated], map: "ws_website_user_updated_foreign")
+}
+
+model group_relationship {
+  id           Int       @id @default(autoincrement()) @db.UnsignedInt
+  user_created String?   @db.Char(36)
+  date_created DateTime? @db.Timestamp(0)
+  user_updated String?   @db.Char(36)
+  date_updated DateTime? @db.Timestamp(0)
 }

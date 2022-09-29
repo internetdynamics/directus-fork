@@ -273,7 +273,7 @@ class Main {
     let magicPathname = options.dirname + "/schema.magic";
     console.log("Writing Directus and Prisma magic ... to [%s]", magicPathname);
     let fh = await fs.createWriteStream(magicPathname, { encoding: "utf8" });
-    console.log("XXX tables", directusSchema.tableNames);
+    // console.log("XXX tables", directusSchema.tableNames);
     for (let table of directusSchema.tableNames) {
       console.log("Directus Magic:", table);
       this.writeTableMagic(fh, directusSchema.nativeTableDef[table], prismaSchemaFile.nativeTableDef[table]);

@@ -20,29 +20,64 @@ D-FIELD: donationMethod
   options:
    '{"choices": [{"text": "zelle", "value": "Zelle"}, {"text": "wire", "value": "Wire"}, {"text": "check", "value": "Check"}, {"text": "cashapp", "value": "Cash App"}, {"text": "venmo", "value": "Venmo"}, {"text": "paypal", "value": "PayPal"}]}',
   display: 'labels' }
+------
+------
+------
+------
+role         action : permissions validation presets fields
+Public*      create : ALL
+Public*      read   : ALL
 
 D-COLLECTION: group
+D-FIELD: groupname
+{ interface: 'input', options: '{"slug":true,"trim":true}', display: 'raw' }
+D-FIELD: groupDisplayName
+{ interface: 'input',
+  options: '{"trim":true}',
+  display: 'raw',
+  display_options: '{}' }
 D-FIELD: defaultGroupRoleId
 { special: 'm2o',
   interface: 'select-dropdown-m2o',
-  options: '{"template":"{{groupRole}}"}',
+  options: '{"template":"{{groupRole}}","enableCreate":false}',
   display: 'related-values',
   display_options: '{"template":"{{groupRole}}"}' }
+D-FIELD: tags
+{ special: 'cast-csv',
+  interface: 'tags',
+  options: '{"whitespace":"-","capitalization":"lowercase","alphabetize":true}',
+  display: 'labels' }
 D-FIELD: groupMembs
 { special: 'o2m',
   interface: 'list-o2m',
   options:
-   '{"enableSelect":false,"template":"{{uid.first_name}} {{uid.last_name}} ({{uid.email}}) : {{groupRoleId.groupRole}} ({{groupMembStatusId.groupMembStatus}})"}',
+   '{"template":"{{uid.first_name}} {{uid.last_name}} ({{uid.email}}) : {{groupRoleId.groupRole}} ({{groupMembStatusId.groupMembStatus}})","enableSelect":false,"enableSearchFilter":true,"enableLink":true}',
   display: 'related-values',
   display_options:
    '{"template":"{{uid.first_name}} {{uid.last_name}} ({{uid.email}}) : {{groupRoleId.groupRole}} ({{groupMembStatusId.groupMembStatus}})"}' }
+D-FIELD: parentGroupId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"enableCreate":false,"template":"{{groupDisplayName}} ({{groupname}})"}',
+  display: 'related-values',
+  display_options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
+D-FIELD: isPublic
+{ special: 'cast-boolean', interface: 'boolean' }
+D-FIELD: advanced
+{ special: 'alias,no-data,group',
+  interface: 'group-detail',
+  options: '{"start":"closed"}' }
 D-FIELD: groupTypeId
 { special: 'm2o',
   interface: 'select-dropdown-m2o',
-  options: '{"template":"{{groupType}}","enableCreate":false}',
-  display: 'related-values' }
+  options: '{"enableCreate":false,"template":"{{groupType}}"}',
+  display: 'related-values',
+  display_options: '{"template":"{{groupType}}"}' }
+------
 D-REL: To One:  group.defaultGroupRoleId                                      => group_role.id
+D-REL: To One:  group.parentGroupId                                           => group.id
 D-REL: To One:  group.groupTypeId                                             => group_type.id
+------
 D-REL: To Many: group.id                                                      => ws_link.groupId                onDeselect(nullify) 
 D-REL: To Many: group.id                                                      => ws_website.groupId             onDeselect(nullify) 
 D-REL: To Many: group.id                                                      => ws_page.groupId                onDeselect(nullify) 
@@ -51,20 +86,27 @@ D-REL: To Many: group.id                                                      =>
 D-REL: To Many: group.id                                                      => directus_files.groupId         onDeselect(nullify) 
 D-REL: To Many: group.id                                                      => directus_folders.groupId       onDeselect(nullify) 
 D-REL: To Many: group.id                                                      => directus_users.currentGroupId  onDeselect(nullify) 
-D-REL: To Many: group.id                                                      => directus_roles.groupId         onDeselect(nullify) 
-D-REL: To Many: group.id                       (group.groupMembs)             => group_memb.gid                 onDeselect(delete) sort(sort)
+D-REL: To Many: group.id                       (group.groupMembs)             => group_memb.gid                 onDeselect(delete) sort(lastAccessedDate)
+D-REL: To Many: group.id                                                      => group.parentGroupId            onDeselect(nullify) 
+------
 P-REL: To One:  group.defaultGroupRoleId       (group.groupRole)              => group_role.id                  index(group_defaultgrouproleid_foreign)  
 P-REL: To One:  group.groupTypeId              (group.group_type)             => group_type.id                  index(group_grouptypeid_foreign)         
+P-REL: To One:  group.parentGroupId            (group.group)                  => group.id                       index(group_parentgroupid_foreign)       tag(groupTogroup)
+------
 P-REL: To Many: group.id                       (group.files)                  => directus_files.groupId                                                  
 P-REL: To Many: group.id                       (group.folders)                => directus_folders.groupId                                                
-P-REL: To Many: group.id                       (group.roles)                  => directus_roles.groupId                                                  
 P-REL: To Many: group.id                       (group.usersCurrent)           => directus_users.currentGroupId                                           tag(directus_users_currentGroupIdTogroup)
+P-REL: To Many: group.parentGroupId            (group.other_group)            => group.parentGroupId                                                     tag(groupTogroup)
 P-REL: To Many: group.id                       (group.groupMembs)             => group_memb.gid                                                          
 P-REL: To Many: group.id                       (group.links)                  => ws_link.groupId                                                         
 P-REL: To Many: group.id                       (group.pages)                  => ws_page.groupId                                                         
 P-REL: To Many: group.id                       (group.sections)               => ws_section.groupId                                                      
 P-REL: To Many: group.id                       (group.sectionItems)           => ws_section_item.groupId                                                 
 P-REL: To Many: group.id                       (group.websites)               => ws_website.groupId                                                      
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: group_memb
 D-FIELD: groupMembStatusId
@@ -79,37 +121,75 @@ D-FIELD: groupRoleId
   display: 'related-values',
   display_options: '{"template":"{{groupRole}}"}' }
 D-FIELD: gid
-{ interface: 'select-dropdown-m2o',
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
   options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}',
   display: 'related-values',
   display_options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
 D-FIELD: uid
-{ interface: 'select-dropdown-m2o',
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
   options: '{"template":"{{first_name}} {{last_name}} ({{email}})","enableCreate":false}',
   display: 'related-values',
   display_options: '{"template":"{{first_name}} {{last_name}} ({{email}})"}' }
+D-FIELD: lastAccessedDate
+{ interface: 'datetime' }
+------
 D-REL: To One:  group_memb.groupMembStatusId                                  => group_memb_status.id
 D-REL: To One:  group_memb.groupRoleId                                        => group_role.id
 D-REL: To One:  group_memb.gid                 (group.groupMembs)             => group.id
-D-REL: To One:  group_memb.uid                                                => directus_users.id
+D-REL: To One:  group_memb.uid                 (directus_users.groupMembs)    => directus_users.id
+------
 P-REL: To One:  group_memb.gid                 (group_memb.group)             => group.id                       index(group_memb_gid_foreign)            
 P-REL: To One:  group_memb.groupMembStatusId   (group_memb.groupMembStatus)   => group_memb_status.id           index(group_memb_groupmembstatusid_foreign) 
 P-REL: To One:  group_memb.groupRoleId         (group_memb.groupRole)         => group_role.id                  index(group_memb_grouproleid_foreign)    
-P-REL: To One:  group_memb.uid                 (group_memb.user)              => directus_users.id              index(group_memb_uid_foreign)            tag(directus_usersTogroup_memb_uid)
+------
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: group_memb_status
+------
 D-REL: To Many: group_memb_status.id                                          => group_memb.groupMembStatusId   onDeselect(nullify) 
+D-REL: To Many: group_memb_status.id                                          => directus_users.currentGroupMembStatusId onDeselect(nullify) 
+------
+------
+P-REL: To Many: group_memb_status.id           (group_memb_status.directus_users) => directus_users.currentGroupMembStatusId                                          
 P-REL: To Many: group_memb_status.id           (group_memb_status.groupMembs) => group_memb.groupMembStatusId                                            
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+
+D-COLLECTION: group_relationship
+------
+------
 
 D-COLLECTION: group_role
+------
 D-REL: To Many: group_role.id                                                 => group.defaultGroupRoleId       onDeselect(nullify) 
 D-REL: To Many: group_role.id                                                 => group_memb.groupRoleId         onDeselect(nullify) 
+D-REL: To Many: group_role.id                                                 => directus_users.currentGroupRoleId onDeselect(nullify) 
+D-REL: To Many: group_role.id                                                 => directus_users.sysRoleId       onDeselect(nullify) 
+------
+------
+P-REL: To Many: group_role.id                  (group_role.directus_users_directus_users_currentGroupRoleIdTogroup_role) => directus_users.currentGroupRoleId                                          tag(directus_users_currentGroupRoleIdTogroup_role)
+P-REL: To Many: group_role.id                  (group_role.directus_users_directus_users_sysRoleIdTogroup_role) => directus_users.sysRoleId                                                tag(directus_users_sysRoleIdTogroup_role)
 P-REL: To Many: group_role.id                  (group_role.groups)            => group.defaultGroupRoleId                                                
 P-REL: To Many: group_role.id                  (group_role.groupMembs)        => group_memb.groupRoleId                                                  
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
 
 D-COLLECTION: group_type
+------
 D-REL: To Many: group_type.id                                                 => group.groupTypeId              onDeselect(nullify) 
+------
+------
 P-REL: To Many: group_type.id                  (group_type.group)             => group.groupTypeId                                                       
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
 
 D-COLLECTION: ws_link
 D-FIELD: groupId
@@ -123,10 +203,17 @@ D-FIELD: websiteId
   options: '{"template": "{{hostPath}}"}' }
 D-FIELD: newTab
 { special: 'cast-boolean', interface: 'boolean' }
+------
 D-REL: To One:  ws_link.groupId                                               => group.id
 D-REL: To One:  ws_link.websiteId              (ws_website.links)             => ws_website.id
+------
 P-REL: To One:  ws_link.groupId                (ws_link.group)                => group.id                       index(ws_link_groupid_foreign)           
 P-REL: To One:  ws_link.websiteId              (ws_link.website)              => ws_website.id                  index(ws_link_websiteid_foreign)         
+------
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: ws_page
 D-FIELD: pageMetaImage
@@ -148,14 +235,22 @@ D-FIELD: groupId
   interface: 'select-dropdown-m2o',
   options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}',
   display: 'related-values' }
+------
 D-REL: To One:  ws_page.pageMetaImage                                         => directus_files.id
 D-REL: To One:  ws_page.websiteId              (ws_website.pages)             => ws_website.id
 D-REL: To One:  ws_page.groupId                                               => group.id
+------
 D-REL: To Many: ws_page.id                     (ws_page.sections)             => ws_section.pageId              onDeselect(nullify) 
+------
 P-REL: To One:  ws_page.groupId                (ws_page.group)                => group.id                       index(ws_page_groupid_foreign)           
 P-REL: To One:  ws_page.pageMetaImageId        (ws_page.pageMetaImage)        => directus_files.id              index(ws_page_pagemetaimage_foreign)     
 P-REL: To One:  ws_page.websiteId              (ws_page.website)              => ws_website.id                  index(ws_page_websiteid_foreign)         
+------
 P-REL: To Many: ws_page.id                     (ws_page.sections)             => ws_section.pageId                                                       
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: ws_section
 D-FIELD: sectionType
@@ -184,16 +279,24 @@ D-FIELD: groupId
 { special: 'm2o',
   interface: 'select-dropdown-m2o',
   options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}' }
+------
 D-REL: To One:  ws_section.sectionImage                                       => directus_files.id
 D-REL: To One:  ws_section.pageId              (ws_page.sections)             => ws_page.id
 D-REL: To One:  ws_section.sectionImage2                                      => directus_files.id
 D-REL: To One:  ws_section.groupId                                            => group.id
+------
 D-REL: To Many: ws_section.id                  (ws_section.items)             => ws_section_item.sectionId      onDeselect(nullify) 
+------
 P-REL: To One:  ws_section.groupId             (ws_section.group)             => group.id                       index(ws_section_groupid_foreign)        
 P-REL: To One:  ws_section.pageId              (ws_section.page)              => ws_page.id                     index(ws_section_pageid_foreign)         
 P-REL: To One:  ws_section.sectionImage2Id     (ws_section.sectionImage2)     => directus_files.id              index(ws_section_sectionimage2_foreign)  tag(directus_filesTows_section_sectionImage2)
 P-REL: To One:  ws_section.sectionImageId      (ws_section.sectionImage)      => directus_files.id              index(ws_section_sectionimage_foreign)   tag(directus_filesTows_section_sectionImage)
+------
 P-REL: To Many: ws_section.id                  (ws_section.items)             => ws_section_item.sectionId                                               
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: ws_section_item
 D-FIELD: sectionId
@@ -211,12 +314,19 @@ D-FIELD: groupId
 { special: 'm2o',
   interface: 'select-dropdown-m2o',
   options: '{"template":"{{groupDisplayName}} ({{groupname}})","enableCreate":false}' }
+------
 D-REL: To One:  ws_section_item.sectionId      (ws_section.items)             => ws_section.id
 D-REL: To One:  ws_section_item.itemImage                                     => directus_files.id
 D-REL: To One:  ws_section_item.groupId                                       => group.id
+------
 P-REL: To One:  ws_section_item.groupId        (ws_section_item.group)        => group.id                       index(ws_section_item_groupid_foreign)   
 P-REL: To One:  ws_section_item.itemImageId    (ws_section_item.itemImage)    => directus_files.id              index(ws_section_item_itemimage_foreign) 
 P-REL: To One:  ws_section_item.sectionId      (ws_section_item.section)      => ws_section.id                  index(ws_section_item_sectionid_foreign) 
+------
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: ws_website
 D-FIELD: groupId
@@ -243,23 +353,40 @@ D-FIELD: links
 { special: 'o2m',
   interface: 'list-o2m',
   options: '{"template": "{{linkType}} : {{text}}"}' }
+------
 D-REL: To One:  ws_website.groupId                                            => group.id
 D-REL: To One:  ws_website.favicon                                            => directus_files.id
 D-REL: To One:  ws_website.landscapeLogo                                      => directus_files.id
 D-REL: To One:  ws_website.footerLandscapeLogo                                => directus_files.id
+------
 D-REL: To Many: ws_website.id                  (ws_website.pages)             => ws_page.websiteId              onDeselect(nullify) sort(sort)
 D-REL: To Many: ws_website.id                  (ws_website.links)             => ws_link.websiteId              onDeselect(nullify) 
+------
 P-REL: To One:  ws_website.faviconId           (ws_website.favicon)           => directus_files.id              index(ws_website_favicon_foreign)        tag(directus_filesTows_website_favicon)
 P-REL: To One:  ws_website.footerLandscapeLogoId (ws_website.footerLandscapeLogo) => directus_files.id              index(ws_website_footerlandscapelogo_foreign) tag(directus_filesTows_website_footerLandscapeLogo)
 P-REL: To One:  ws_website.groupId             (ws_website.group)             => group.id                       index(ws_website_groupid_foreign)        
 P-REL: To One:  ws_website.landscapeLogoId     (ws_website.landscapeLogo)     => directus_files.id              index(ws_website_landscapelogo_foreign)  tag(directus_filesTows_website_landscapeLogo)
+------
 P-REL: To Many: ws_website.id                  (ws_website.links)             => ws_link.websiteId                                                       
 P-REL: To Many: ws_website.id                  (ws_website.pages)             => ws_page.websiteId                                                       
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      create : null null {"groupId":"$CURRENT_USER.currentGroupId"} favicon,footerLandscapeLogo,landscapeLogo,status,copyrightName,hostPath,twitterUsername,twitterCardType,htmlTitleSuffix,baseApiUrl,domain,sort,pages,links,baseUrl
+Public*      read   : {"_and":[{"groupId":{"_eq":"$CURRENT_USER.currentGroupId"}}]} {} null *
+Public*      update : {"_and":[{"groupId":{"_eq":"$CURRENT_USER.currentGroupId"}}]} null null favicon,footerLandscapeLogo,landscapeLogo,status,sort,domain,baseUrl,baseApiUrl,twitterCardType,htmlTitleSuffix,twitterUsername,hostPath,pages,copyrightName,links
+Public*      delete : {"_and":[{"groupId":{"_eq":"$CURRENT_USER.currentGroupId"}}]} null null null
+Public*      share  : {"_and":[{"groupId":{"_eq":"$CURRENT_USER.currentGroupId"}}]} null null null
 
 D-COLLECTION: hero
 D-FIELD: image
 { special: 'file', interface: 'file-image', display: 'image' }
+------
 D-REL: To One:  hero.image                                                    => directus_files.id
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: header
 D-FIELD: image
@@ -270,7 +397,12 @@ D-FIELD: links
   options:
    '{"fields": [{"meta": {"type": "text", "field": "title", "interface": "input"}, "name": "title", "type": "text", "field": "title"}, {"meta": {"type": "text", "field": "href", "interface": "input"}, "name": "href", "type": "text", "field": "href"}]}',
   display: 'labels' }
+------
 D-REL: To One:  header.image                                                  => directus_files.id
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: footer
 D-FIELD: image
@@ -287,11 +419,25 @@ D-FIELD: legalLinks
   options:
    '{"fields": [{"meta": {"type": "string", "field": "title", "interface": "input"}, "name": "title", "type": "string", "field": "title"}, {"meta": {"type": "string", "field": "url", "interface": "input"}, "name": "url", "type": "string", "field": "url"}, {"meta": {"type": "boolean", "field": "newTab", "interface": "boolean"}, "name": "newTab", "type": "boolean", "field": "newTab"}]}',
   display: 'raw' }
+------
 D-REL: To One:  footer.image                                                  => directus_files.id
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: terms
+------
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
 
 D-COLLECTION: privacy
+------
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      read   : ALL
 
 D-COLLECTION: directus_users
 D-FIELD: currentGroupId
@@ -303,24 +449,60 @@ D-FIELD: groupMembs
   interface: 'list-o2m',
   options:
    '{"template":"{{gid.groupDisplayName}} ({{gid.groupname}}) : {{groupRoleId.groupRole}} ({{groupMembStatusId.groupMembStatus}})","enableSelect":false}' }
+D-FIELD: currentGroupRoleId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupRole}}","enableCreate":false}',
+  display: 'related-values',
+  display_options: '{"template":"{{groupRole}}"}' }
+D-FIELD: currentGroupMembStatusId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupMembStatus}}","enableCreate":false}',
+  display: 'related-values' }
+D-FIELD: sysRoleId
+{ special: 'm2o',
+  interface: 'select-dropdown-m2o',
+  options: '{"template":"{{groupRole}}","enableCreate":false}',
+  display: 'related-values' }
+------
 D-REL: To One:  directus_users.currentGroupId                                 => group.id
-D-REL: To Many: directus_users.id                                             => group_memb.uid                 onDeselect(delete) 
+D-REL: To One:  directus_users.currentGroupRoleId                                => group_role.id
+D-REL: To One:  directus_users.currentGroupMembStatusId                                => group_memb_status.id
+D-REL: To One:  directus_users.sysRoleId                                      => group_role.id
+------
+D-REL: To Many: directus_users.id              (directus_users.groupMembs)    => group_memb.uid                 onDeselect(nullify) 
+------
 P-REL: To One:  directus_users.currentGroupId  (directus_users.currentGroup)  => group.id                       index(directus_users_currentgroupid_foreign) tag(directus_users_currentGroupIdTogroup)
+P-REL: To One:  directus_users.currentGroupMembStatusId (directus_users.group_memb_status) => group_memb_status.id           index(directus_users_currentgroupmembstatusid_foreign) 
+P-REL: To One:  directus_users.currentGroupRoleId (directus_users.group_role_directus_users_currentGroupRoleIdTogroup_role) => group_role.id                  index(directus_users_currentgrouproleid_foreign) tag(directus_users_currentGroupRoleIdTogroup_role)
 P-REL: To One:  directus_users.role            (directus_users.roleRel)       => directus_roles.id              index(directus_users_role_foreign)       
+P-REL: To One:  directus_users.sysRoleId       (directus_users.group_role_directus_users_sysRoleIdTogroup_role) => group_role.id                  index(directus_users_sysroleid_foreign)  tag(directus_users_sysRoleIdTogroup_role)
+------
 P-REL: To Many: directus_users.id              (directus_users.filesModified) => directus_files.modified_by                                              tag(directus_files_modified_byTodirectus_users)
 P-REL: To Many: directus_users.id              (directus_users.filesUploaded) => directus_files.uploaded_by                                              tag(directus_files_uploaded_byTodirectus_users)
 P-REL: To Many: directus_users.id              (directus_users.notificationsReceived) => directus_notifications.recipient                                          tag(directus_notifications_recipientTodirectus_users)
 P-REL: To Many: directus_users.id              (directus_users.notificationsSent) => directus_notifications.sender                                           tag(directus_notifications_senderTodirectus_users)
 P-REL: To Many: directus_users.id              (directus_users.presets)       => directus_presets.user                                                   
 P-REL: To Many: directus_users.id              (directus_users.sessions)      => directus_sessions.user                                                  
-P-REL: To Many: directus_users.id              (directus_users.groupMembs)    => group_memb.uid                                                          tag(directus_usersTogroup_memb_uid)
+------
+role         action : permissions validation presets fields
+Public*      create : ALL
+Public*      read   : ALL
+Public*      delete : ALL
+Public*      create : ALL
+Public*      read   : ALL
+Public*      update : ALL
+Public*      delete : ALL
 
 D-COLLECTION: directus_files
 D-FIELD: groupId
 { special: 'm2o',
   interface: 'select-dropdown-m2o',
   options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
+------
 D-REL: To One:  directus_files.groupId                                        => group.id
+------
 D-REL: To Many: directus_files.id                                             => hero.image                     onDeselect(nullify) 
 D-REL: To Many: directus_files.id                                             => header.image                   onDeselect(nullify) 
 D-REL: To Many: directus_files.id                                             => footer.image                   onDeselect(nullify) 
@@ -331,10 +513,12 @@ D-REL: To Many: directus_files.id                                             =>
 D-REL: To Many: directus_files.id                                             => ws_section.sectionImage        onDeselect(nullify) 
 D-REL: To Many: directus_files.id                                             => ws_section_item.itemImage      onDeselect(nullify) 
 D-REL: To Many: directus_files.id                                             => ws_section.sectionImage2       onDeselect(nullify) 
+------
 P-REL: To One:  directus_files.folder          (directus_files.folderRel)     => directus_folders.id            index(directus_files_folder_foreign)     
 P-REL: To One:  directus_files.groupId         (directus_files.group)         => group.id                       index(directus_files_groupid_foreign)    
 P-REL: To One:  directus_files.modified_by     (directus_files.usersModifiedBy) => directus_users.id              index(directus_files_modified_by_foreign) tag(directus_files_modified_byTodirectus_users)
 P-REL: To One:  directus_files.uploaded_by     (directus_files.usersUploadedBy) => directus_users.id              index(directus_files_uploaded_by_foreign) tag(directus_files_uploaded_byTodirectus_users)
+------
 P-REL: To Many: directus_files.id              (directus_files.settingsByProjectLogo) => directus_settings.project_logo                                          tag(directus_filesTodirectus_settings_project_logo)
 P-REL: To Many: directus_files.id              (directus_files.settingsByPublicBackground) => directus_settings.public_background                                          tag(directus_filesTodirectus_settings_public_background)
 P-REL: To Many: directus_files.id              (directus_files.settingsByPublicForeground) => directus_settings.public_foreground                                          tag(directus_filesTodirectus_settings_public_foreground)
@@ -345,28 +529,32 @@ P-REL: To Many: directus_files.id              (directus_files.sectionItems)  =>
 P-REL: To Many: directus_files.id              (directus_files.websitesByFavicon) => ws_website.faviconId                                                    tag(directus_filesTows_website_favicon)
 P-REL: To Many: directus_files.id              (directus_files.websitesByFooterLandscapeLogo) => ws_website.footerLandscapeLogoId                                          tag(directus_filesTows_website_footerLandscapeLogo)
 P-REL: To Many: directus_files.id              (directus_files.websitesByLandscapeLogo) => ws_website.landscapeLogoId                                              tag(directus_filesTows_website_landscapeLogo)
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      create : {} null null *
+Public*      read   : ALL
+Public*      update : {} null null *
+Public*      delete : ALL
 
 D-COLLECTION: directus_folders
 D-FIELD: groupId
 { special: 'm2o',
   interface: 'select-dropdown-m2o',
   options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
+------
 D-REL: To One:  directus_folders.groupId                                      => group.id
+------
 P-REL: To One:  directus_folders.groupId       (directus_folders.group)       => group.id                       index(directus_folders_groupid_foreign)  
 P-REL: To One:  directus_folders.parent        (directus_folders.folder)      => directus_folders.id            index(directus_folders_parent_foreign)   tag(directus_foldersTodirectus_folders)
+------
 P-REL: To Many: directus_folders.id            (directus_folders.files)       => directus_files.folder                                                   
 P-REL: To Many: directus_folders.parent        (directus_folders.otherFolders) => directus_folders.parent                                                 tag(directus_foldersTodirectus_folders)
 P-REL: To Many: directus_folders.id            (directus_folders.settings)    => directus_settings.storage_default_folder                                          
-
-D-COLLECTION: directus_roles
-D-FIELD: groupId
-{ special: 'm2o',
-  interface: 'select-dropdown-m2o',
-  options: '{"template":"{{groupDisplayName}} ({{groupname}})"}' }
-D-REL: To One:  directus_roles.groupId                                        => group.id
-P-REL: To One:  directus_roles.groupId         (directus_roles.group)         => group.id                       index(directus_roles_groupid_foreign)    
-P-REL: To Many: directus_roles.id              (directus_roles.permissions)   => directus_permissions.role                                               
-P-REL: To Many: directus_roles.id              (directus_roles.presets)       => directus_presets.role                                                   
-P-REL: To Many: directus_roles.id              (directus_roles.shares)        => directus_shares.role                                                    
-P-REL: To Many: directus_roles.id              (directus_roles.users)         => directus_users.role                                                     
+------
+role         action : permissions validation presets fields
+Public*      read   : ALL
+Public*      create : {} null null *
+Public*      read   : ALL
+Public*      update : {} null null *
 

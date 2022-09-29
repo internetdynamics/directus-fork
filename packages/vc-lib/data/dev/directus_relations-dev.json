@@ -576,18 +576,6 @@
     "one_deselect_action": "nullify"
   },
   {
-    "id": 72,
-    "many_collection": "directus_roles",
-    "many_field": "groupId",
-    "one_collection": "group",
-    "one_field": null,
-    "one_collection_field": null,
-    "one_allowed_collections": null,
-    "junction_field": null,
-    "sort_field": null,
-    "one_deselect_action": "nullify"
-  },
-  {
     "id": 73,
     "many_collection": "group",
     "many_field": "defaultGroupRoleId",
@@ -624,7 +612,31 @@
     "one_deselect_action": "nullify"
   },
   {
-    "id": 79,
+    "id": 84,
+    "many_collection": "directus_users",
+    "many_field": "currentGroupRoleId",
+    "one_collection": "group_role",
+    "one_field": null,
+    "one_collection_field": null,
+    "one_allowed_collections": null,
+    "junction_field": null,
+    "sort_field": null,
+    "one_deselect_action": "nullify"
+  },
+  {
+    "id": 85,
+    "many_collection": "directus_users",
+    "many_field": "currentGroupMembStatusId",
+    "one_collection": "group_memb_status",
+    "one_field": null,
+    "one_collection_field": null,
+    "one_allowed_collections": null,
+    "junction_field": null,
+    "sort_field": null,
+    "one_deselect_action": "nullify"
+  },
+  {
+    "id": 86,
     "many_collection": "group_memb",
     "many_field": "gid",
     "one_collection": "group",
@@ -632,23 +644,47 @@
     "one_collection_field": null,
     "one_allowed_collections": null,
     "junction_field": null,
-    "sort_field": "sort",
+    "sort_field": "lastAccessedDate",
     "one_deselect_action": "delete"
   },
   {
-    "id": 80,
+    "id": 87,
     "many_collection": "group_memb",
     "many_field": "uid",
     "one_collection": "directus_users",
+    "one_field": "groupMembs",
+    "one_collection_field": null,
+    "one_allowed_collections": null,
+    "junction_field": null,
+    "sort_field": null,
+    "one_deselect_action": "nullify"
+  },
+  {
+    "id": 89,
+    "many_collection": "group",
+    "many_field": "parentGroupId",
+    "one_collection": "group",
     "one_field": null,
     "one_collection_field": null,
     "one_allowed_collections": null,
     "junction_field": null,
     "sort_field": null,
-    "one_deselect_action": "delete"
+    "one_deselect_action": "nullify"
   },
   {
-    "id": 81,
+    "id": 90,
+    "many_collection": "directus_users",
+    "many_field": "sysRoleId",
+    "one_collection": "group_role",
+    "one_field": null,
+    "one_collection_field": null,
+    "one_allowed_collections": null,
+    "junction_field": null,
+    "sort_field": null,
+    "one_deselect_action": "nullify"
+  },
+  {
+    "id": 92,
     "many_collection": "group",
     "many_field": "groupTypeId",
     "one_collection": "group_type",
