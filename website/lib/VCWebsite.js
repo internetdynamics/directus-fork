@@ -4,7 +4,6 @@
 // console.log("directusClient", directusClient);
 // const liquidjs = require("liquidjs");
 import * as vclib from "vc-lib";
-console.log("vclib", vclib);
 // const PrismaDatabase = vclib.PrismaDatabase;
 const DirectusDatabase = vclib.DirectusDatabase;
 // console.log("PrismaDatabase", PrismaDatabase, PrismaDatabase.constructor.name);
