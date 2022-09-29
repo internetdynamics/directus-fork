@@ -1,0 +1,67 @@
+
+Modified Directus Source Files:
+        package.json
+        pnpm-lock.yaml
+
+        api/src/app.ts             # rename "admin" to "app" (x4). enable more controllers (web service API endpoints).
+        api/src/services/index.ts  # enable more services
+        api/src/types/index.ts
+
+        app/src/lang/translations/en-US.yaml   # to rename modules
+        app/src/modules/content/index.ts
+        app/src/stores/user.ts
+
+        modified:   packages/shared/src/types/users.ts
+
+
+New files:
+
+        .npmrc
+
+        api/src/controllers/db.ts
+        api/src/controllers/groups.ts
+        api/src/services/db.ts
+        api/src/services/groups.ts
+        api/src/types/groups.ts
+        api/src/utils/get-ext-user.ts
+
+        app/src/modules/community/
+        app/src/modules/learn/
+        app/src/modules/teach/
+        app/src/views/private/components/group-select.vue
+
+        packages/vc-lib/
+        packages/vc-lib/.npmrc
+
+        website/
+        website/.npmrc
+
+# -------------------------------------------------------------
+git pull upstream main
+
+CONFLICT (content): Merge conflict in pnpm-lock.yaml
+
+CONFLICT (content): Merge conflict in app/src/operations/mail/index.ts
+CONFLICT (content): Merge conflict in app/src/operations/exec/index.ts
+CONFLICT (content): Merge conflict in app/src/modules/settings/routes/presets/item.vue
+CONFLICT (content): Merge conflict in app/src/modules/files/routes/item.vue
+CONFLICT (content): Merge conflict in app/src/modules/activity/routes/item.vue
+CONFLICT (content): Merge conflict in app/src/interfaces/list-o2m/list-o2m.vue
+CONFLICT (content): Merge conflict in app/src/interfaces/list-o2m/index.ts
+CONFLICT (content): Merge conflict in app/src/interfaces/list-m2m/list-m2m.vue
+CONFLICT (content): Merge conflict in app/src/interfaces/list-m2m/index.ts
+CONFLICT (content): Merge conflict in app/src/interfaces/file-image/file-image.vue
+CONFLICT (content): Merge conflict in app/src/composables/use-relation-multiple.ts
+CONFLICT (content): Merge conflict in app/src/components/v-workspace-tile.vue
+CONFLICT (content): Merge conflict in app/src/components/v-select/v-select.vue
+CONFLICT (content): Merge conflict in app/src/components/v-notice.vue
+CONFLICT (content): Merge conflict in app/src/components/v-form/v-form.vue
+CONFLICT (content): Merge conflict in api/src/utils/get-cache-key.test.ts
+CONFLICT (content): Merge conflict in api/src/services/server.ts
+CONFLICT (content): Merge conflict in api/src/services/payload.ts
+CONFLICT (content): Merge conflict in api/src/services/items.ts
+CONFLICT (content): Merge conflict in api/src/operations/notification/index.ts
+CONFLICT (content): Merge conflict in api/src/middleware/authenticate.test.ts
+CONFLICT (content): Merge conflict in api/src/flows.ts
+CONFLICT (content): Merge conflict in api/src/env.ts
+CONFLICT (content): Merge conflict in api/src/app.ts
