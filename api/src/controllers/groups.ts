@@ -36,8 +36,8 @@ const readMyGroups = asyncHandler(async (req, res, next) => {
 		if (isAdmin || user.sysRoleId === 1) {
 			groups = await database
 			.select(
-				'group.id', 'group.groupname', 'group.groupDisplayName',
-				'group_memb.groupRoleId', 'group_memb.groupMembStatusId', 'group_memb.lastAccessedDate',
+				'group.id', 'group.groupname', 'group.groupDisplayName', 'group.user_created',
+				'group_memb.groupRoleId', 'group_memb.lastAccessedDate',
 			)
 			.from('group')
 			.leftJoin(database.raw('group_memb on group_memb.gid = group.id and group_memb.uid = ?', uid))
@@ -46,14 +46,29 @@ const readMyGroups = asyncHandler(async (req, res, next) => {
 		else {
 			groups = await database
 			.select(
-				'group.id', 'group.groupname', 'group.groupDisplayName',
-				'group_memb.groupRoleId', 'group_memb.groupMembStatusId', 'group_memb.lastAccessedDate',
+				'group.id', 'group.groupname', 'group.groupDisplayName', 'group.user_created',
+				'group_memb.groupRoleId', 'group_memb.lastAccessedDate',
 			)
 			.from('group')
 			.leftJoin(database.raw('group_memb on group_memb.gid = group.id and group_memb.uid = ?', uid))
 			.where({ 'group.isPublic': true })
 			.orWhere({ 'group_memb.uid': userId })
+			.orWhere({ 'group.user_created': userId })
 			.orderBy("group_memb.lastAccessedDate", "desc", "group.id");
+		}
+		// console.log("groups", groups);
+		// if you happen to see a group you created, but there is no group_memb record, create it automatically
+		for (let group of groups) {
+			if (userId === group.user_created && !group.groupRoleId) {
+				await database('group_memb').insert({
+					gid: group.id,
+					uid: userId,
+					groupRoleId: 2,  // OWNER
+					user_created: userId,
+					date_created: new Date(),
+				});
+				group.groupRoleId = 2;  // OWNER
+			}
 		}
 	}
 	else {
@@ -104,6 +119,13 @@ router.get('/', readMyGroups, respond);
 // 	respond
 // );
 
+// CONDITIONS TO SWITCH TO A GROUP
+// {"isPublic":{"_eq":true}}, (create a "follower" membership)
+// {"user_created":{"id":{"_eq":"$CURRENT_USER"}}},
+// {"groupMembs":{"uid":{"_eq":"$CURRENT_USER"}}},
+// {"parentGroupId":{"_eq":"$CURRENT_USER.currentGroupId"}}, (create a "follower" membership)
+// {"id":{"_eq":"$CURRENT_USER.currentGroupId"}}
+
 router.post(
 	'/switchGroup/:gid',
 	// collectionExists,
@@ -111,66 +133,77 @@ router.post(
 		console.log("[controllers] groups/switchGroup/%s", req.params.gid);
 		let accountability = req.accountability;
 		let userId = accountability?.user;
-		let role = accountability?.role;
+		// let role = accountability?.role;
 		let isAdmin = accountability?.admin;
-		let gid = req.params.gid;
+		let gid = parseInt(req.params.gid, 10);
+
 		if (userId) {
 			let now = new Date();
 			const database = getDatabase();
+			let userAuth = await getUserAuth(userId, gid);
+			console.log("XXX userAuth", userAuth);
 
-			let groupMemb: any = await database
-			.select("directus_users.sysRoleId", "group_memb.gid", "group_memb.groupRoleId", "group_memb.groupMembStatusId")
-			.from("directus_users")
-			.leftJoin("group_memb","group_memb.uid","directus_users.id")
-			.where({
-				'directus_users.id': userId,
-				'group_memb.uid': userId,
-				'group_memb.gid': gid
-			})
-			.first();
-			console.log("XXX groupMemb", groupMemb);
-
-			let sysRoleId;
-			if (groupMemb && groupMemb.sysRoleId) {
-				sysRoleId = groupMemb.sysRoleId;
-				delete groupMemb.sysRoleId;
-			}
-
-			if (groupMemb && !groupMemb.gid && (isAdmin || sysRoleId === 1)) {
-				groupMemb = {
-					'user_created': userId,
-					'date_created': now,
-					'user_updated': userId,
-					'date_updated': now,
-					'uid': userId,
-					'gid': gid,
-					'groupRoleId': 1,
-					'groupMembStatusId': 1,
-					'lastAccessedDate': now,
-				};
-				let groupMembInsertResult = await database('group_memb')
-				.insert(groupMemb, ["id"]);
-				console.log("XXX insert group_memb groupMembInsertResult", groupMembInsertResult);
-			}
-			else if (groupMemb && groupMemb.gid && groupMemb.groupMembStatusId === 1) {
-				let groupMembUpdateResult = await database('group_memb')
-				.where({
-					'uid': userId,
-					'gid': gid,
-				})
-				.update({
-					'lastAccessedDate': now,
-				});
-				console.log("XXX update group_memb result", groupMembUpdateResult);
-			}
-
-			if (groupMemb && groupMemb.groupMembStatusId === 1) {
+			if (userAuth) {  // this should always be true as long as the user is correct
+				// if the group_memb is missing, should it be created?
+				let groupRoleId = userAuth.groupRoleId || 10;
+				if (!userAuth.gid) {
+					const groupMemb = {
+						'user_created': userId,
+						'date_created': now,
+						'user_updated': userId,
+						'date_updated': now,
+						'uid': userId,
+						'gid': gid,
+						'groupRoleId': 0,
+						'lastAccessedDate': now,
+					};
+					if (isAdmin || userAuth.sysRoleId === 1) {
+						groupMemb.groupRoleId = 1;  // superuser
+						groupRoleId = 1;
+					}
+					else if (userAuth.user_created === userId) {
+						groupMemb.groupRoleId = 2;  // owner
+						groupRoleId = 2;
+					}
+					else if (userAuth.isPublic) {
+						groupMemb.groupRoleId = 9;  // follower
+						groupRoleId = 9;
+					}
+					if (groupMemb.groupRoleId) {
+						let groupMembInsertResult = await database('group_memb')
+						.insert(groupMemb, ["id"]);
+						console.log("XXX insert group_memb groupMembInsertResult", groupMembInsertResult);
+						userAuth.gid = gid;
+						userAuth.groupRoleId = groupMemb.groupRoleId;
+						groupRoleId = groupMemb.groupRoleId;
+					}
+				}
+				else if (userAuth.gid) {
+					let groupMembUpdateResult = await database('group_memb')
+					.where({
+						'uid': userId,
+						'gid': gid,
+					})
+					.update({
+						'lastAccessedDate': now,
+					});
+					console.log("XXX update group_memb result", groupMembUpdateResult);
+				}
 				let result = await database('directus_users')
 				.where('id', '=', userId)
 				.update({
 					currentGroupId: gid,
-					currentGroupMembStatusId: groupMemb.groupMembStatusId,
-					currentGroupRoleId: groupMemb.groupRoleId,
+					currentGroupRoleId: userAuth.groupRoleId,
+					currentGroupId1: groupRoleId <= 1 ? gid : null,
+					currentGroupId2: groupRoleId <= 2 ? gid : null,
+					currentGroupId3: groupRoleId <= 3 ? gid : null,
+					currentGroupId4: groupRoleId <= 4 ? gid : null,
+					currentGroupId5: groupRoleId <= 5 ? gid : null,
+					currentGroupId6: groupRoleId <= 6 ? gid : null,
+					currentGroupId7: groupRoleId <= 7 ? gid : null,
+					currentGroupId8: groupRoleId <= 8 ? gid : null,
+					currentGroupId9: groupRoleId <= 9 ? gid : null,
+					currentGroupId10: groupRoleId <= 10 ? gid : null,
 				});
 				console.log("XXX update directus_user result", result);
 			}
