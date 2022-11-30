@@ -21,10 +21,20 @@
 # 'Proxy', 'Intl'
 
 # Custom Translation Strings
+# Modules
 website: Website
 community: Community
 learn: Learn
 teach: Teach
+# Fields (directus_users) (TODO: Doesn't work)
+Current Group ID: Current Group
+Current Group Role ID: Current Group Role
+# Fields (group_memb) (TODO: Doesn't work)
+Gid: Group
+Uid: Group Member
+groupRoleId: Group Role
+requestedGroupRoleId: Requested Group Role
+invitedGroupRoleId: Invited Group Role
 
 identifier: Identifier
 avatar: Avatar
@@ -644,7 +654,7 @@ unexpected_error: Unexpected Error
 unexpected_error_copy: An unexpected error has occurred. Please try again later.
 copy_details: Copy Details
 no_app_access: No App Access
-no_app_access_copy: This user isn't allowed to use the admin app.
+no_app_access_copy: This user isn't allowed to use the app.
 password_reset_sent: If you have an account, we've sent you a secure link to reset your password
 password_reset_successful: Password successfully reset
 back: Back
