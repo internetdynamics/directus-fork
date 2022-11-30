@@ -13,7 +13,6 @@ Modified Directus Source Files:
 
         modified:   packages/shared/src/types/users.ts
 
-
 New files:
 
         .npmrc
@@ -65,3 +64,24 @@ CONFLICT (content): Merge conflict in api/src/middleware/authenticate.test.ts
 CONFLICT (content): Merge conflict in api/src/flows.ts
 CONFLICT (content): Merge conflict in api/src/env.ts
 CONFLICT (content): Merge conflict in api/src/app.ts
+
+-- READ
+{
+  "_or":[
+    {"isPublic":{"_eq":true}},
+    {"user_created":{"id":{"_eq":"$CURRENT_USER"}}},
+    {"groupMembs":{"uid":{"_eq":"$CURRENT_USER"}}},
+    {"parentGroupId":{"_eq":"$CURRENT_USER.currentGroupId"}},
+    {"id":{"_eq":"$CURRENT_USER.currentGroupId"}}
+  ]
+}
+
+-- UPDATE
+{
+  "groupMembs":{
+    "uid":{"_eq":"$CURRENT_USER"},
+    // "gid":{"_eq":"$CURRENT_USER.currentGroupId"},
+    "groupRoleId":{"_lte":3},
+  }
+}
+
