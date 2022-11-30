@@ -568,7 +568,7 @@
     "many_collection": "directus_users",
     "many_field": "currentGroupId",
     "one_collection": "group",
-    "one_field": null,
+    "one_field": "currentUsers",
     "one_collection_field": null,
     "one_allowed_collections": null,
     "junction_field": null,
@@ -580,18 +580,6 @@
     "many_collection": "group",
     "many_field": "defaultGroupRoleId",
     "one_collection": "group_role",
-    "one_field": null,
-    "one_collection_field": null,
-    "one_allowed_collections": null,
-    "junction_field": null,
-    "sort_field": null,
-    "one_deselect_action": "nullify"
-  },
-  {
-    "id": 74,
-    "many_collection": "group_memb",
-    "many_field": "groupMembStatusId",
-    "one_collection": "group_memb_status",
     "one_field": null,
     "one_collection_field": null,
     "one_allowed_collections": null,
@@ -624,18 +612,6 @@
     "one_deselect_action": "nullify"
   },
   {
-    "id": 85,
-    "many_collection": "directus_users",
-    "many_field": "currentGroupMembStatusId",
-    "one_collection": "group_memb_status",
-    "one_field": null,
-    "one_collection_field": null,
-    "one_allowed_collections": null,
-    "junction_field": null,
-    "sort_field": null,
-    "one_deselect_action": "nullify"
-  },
-  {
     "id": 86,
     "many_collection": "group_memb",
     "many_field": "gid",
@@ -644,7 +620,7 @@
     "one_collection_field": null,
     "one_allowed_collections": null,
     "junction_field": null,
-    "sort_field": "lastAccessedDate",
+    "sort_field": null,
     "one_deselect_action": "delete"
   },
   {
@@ -688,6 +664,30 @@
     "many_collection": "group",
     "many_field": "groupTypeId",
     "one_collection": "group_type",
+    "one_field": null,
+    "one_collection_field": null,
+    "one_allowed_collections": null,
+    "junction_field": null,
+    "sort_field": null,
+    "one_deselect_action": "nullify"
+  },
+  {
+    "id": 93,
+    "many_collection": "group_memb",
+    "many_field": "requestedGroupRoleId",
+    "one_collection": "group_role",
+    "one_field": null,
+    "one_collection_field": null,
+    "one_allowed_collections": null,
+    "junction_field": null,
+    "sort_field": null,
+    "one_deselect_action": "nullify"
+  },
+  {
+    "id": 94,
+    "many_collection": "group_memb",
+    "many_field": "invitedGroupRoleId",
+    "one_collection": "group_role",
     "one_field": null,
     "one_collection_field": null,
     "one_allowed_collections": null,

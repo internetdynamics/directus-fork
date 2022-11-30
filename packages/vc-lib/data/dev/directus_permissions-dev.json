@@ -184,10 +184,10 @@
     "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
     "collection": "directus_users",
     "action": "update",
-    "permissions": "{}",
+    "permissions": "{\"_and\":[{\"id\":{\"_eq\":\"$CURRENT_USER\"}}]}",
     "validation": "{}",
     "presets": null,
-    "fields": "*"
+    "fields": "first_name,phone,last_name,email,password,avatar,groupMembs,location,title,description,tags,preferences_divider,language,theme,tfa_secret,email_notifications,admin_divider,status,external_identifier,auth_data,last_page,last_access"
   },
   {
     "id": 21,
@@ -264,16 +264,6 @@
     "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
     "collection": "directus_users",
     "action": "create",
-    "permissions": "{}",
-    "validation": "{}",
-    "presets": null,
-    "fields": "*"
-  },
-  {
-    "id": 42,
-    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
-    "collection": "directus_users",
-    "action": "delete",
     "permissions": "{}",
     "validation": "{}",
     "presets": null,
@@ -454,7 +444,7 @@
     "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
     "collection": "group",
     "action": "read",
-    "permissions": "{}",
+    "permissions": "{\"_or\":[{\"isPublic\":{\"_eq\":true}},{\"user_created\":{\"id\":{\"_eq\":\"$CURRENT_USER\"}}},{\"groupMembs\":{\"uid\":{\"_eq\":\"$CURRENT_USER\"}}},{\"parentGroupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId\"}},{\"id\":{\"_eq\":\"$CURRENT_USER.currentGroupId\"}}]}",
     "validation": "{}",
     "presets": null,
     "fields": "*"
@@ -464,7 +454,7 @@
     "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
     "collection": "group_memb",
     "action": "read",
-    "permissions": "{}",
+    "permissions": "{\"_and\":[{\"_or\":[{\"uid\":{\"_eq\":\"$CURRENT_USER\"}},{\"gid\":{\"_eq\":\"$CURRENT_USER.currentGroupId\"}}]}]}",
     "validation": "{}",
     "presets": null,
     "fields": "*"
@@ -578,16 +568,6 @@
     "validation": null,
     "presets": null,
     "fields": null
-  },
-  {
-    "id": 84,
-    "role": null,
-    "collection": "group_memb_status",
-    "action": "read",
-    "permissions": "{}",
-    "validation": "{}",
-    "presets": null,
-    "fields": "*"
   },
   {
     "id": 85,
@@ -798,5 +778,85 @@
     "validation": "{}",
     "presets": null,
     "fields": "*"
+  },
+  {
+    "id": 107,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "group",
+    "action": "create",
+    "permissions": "{}",
+    "validation": "{}",
+    "presets": null,
+    "fields": "groupTypeId,groupDisplayName,groupname,groupMembs,advanced,tags,groupDescription,isPublic,parentGroupId,defaultGroupRoleId,groupPrefs,domain,status"
+  },
+  {
+    "id": 110,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "group_memb",
+    "action": "create",
+    "permissions": "{}",
+    "validation": "{\"_and\":[{\"_or\":[{\"_and\":[{\"uid\":{\"_eq\":\"$CURRENT_USER\"}},{\"groupRoleId\":{\"_gte\":\"9\"}}]},{\"gid\":{\"_eq\":\"$CURRENT_USER.currentGroupId3\"}}]}]}",
+    "presets": null,
+    "fields": "uid,groupRoleId,groupMembStatusId,gid"
+  },
+  {
+    "id": 112,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "group",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"id\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "groupTypeId,groupDisplayName,groupname,groupMembs,advanced,tags,groupDescription,isPublic,parentGroupId,defaultGroupRoleId,groupPrefs,domain,status"
+  },
+  {
+    "id": 114,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "group_role",
+    "action": "read",
+    "permissions": "{}",
+    "validation": "{}",
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 115,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "group_type",
+    "action": "read",
+    "permissions": "{}",
+    "validation": "{}",
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 116,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "group_relationship",
+    "action": "read",
+    "permissions": "{}",
+    "validation": "{}",
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 117,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "group_memb",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"gid\":{\"_eq\":\"$CURRENT_USER.currentGroupId3\"}}]}",
+    "validation": "{}",
+    "presets": null,
+    "fields": "groupRoleId,invitedGroupRoleId"
+  },
+  {
+    "id": 118,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "group",
+    "action": "share",
+    "permissions": "{\"_and\":[{\"id\":{\"_eq\":\"$CURRENT_USER.currentGroupId5\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
   }
 ]

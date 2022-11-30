@@ -18,6 +18,7 @@ model directus_activity {
   collection String               @db.VarChar(64)
   item       String               @db.VarChar(255)
   comment    String?              @db.Text
+  origin     String?              @db.VarChar(255)
   revisions  directus_revisions[]
 
   @@index([collection], map: "directus_activity_collection_foreign")
@@ -155,9 +156,9 @@ model directus_folders {
   name         String              @db.VarChar(255)
   parent       String?             @db.Char(36)
   groupId      Int?                @db.UnsignedInt
+  files        directus_files[]
   group        group?              @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "directus_folders_groupid_foreign")
   folder       directus_folders?   @relation("directus_foldersTodirectus_folders", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_folders_parent_foreign")
-  files        directus_files[]
   otherFolders directus_folders[]  @relation("directus_foldersTodirectus_folders")
   settings     directus_settings[]
 
@@ -203,10 +204,10 @@ model directus_operations {
   user_created            String?              @db.Char(36)
   flowRel                 directus_flows       @relation(fields: [flow], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_operations_flow_foreign")
   operationsRejected      directus_operations? @relation("directus_operationsTodirectus_operations_reject", fields: [reject], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_operations_reject_foreign")
-  operationsResolved      directus_operations? @relation("directus_operationsTodirectus_operations_resolve", fields: [resolve], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_operations_resolve_foreign")
-  userCreated             directus_users?      @relation(fields: [user_created], references: [id], onUpdate: Restrict, map: "directus_operations_user_created_foreign")
   otherOperationsRejected directus_operations? @relation("directus_operationsTodirectus_operations_reject")
+  operationsResolved      directus_operations? @relation("directus_operationsTodirectus_operations_resolve", fields: [resolve], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "directus_operations_resolve_foreign")
   otherOperationsResolved directus_operations? @relation("directus_operationsTodirectus_operations_resolve")
+  userCreated             directus_users?      @relation(fields: [user_created], references: [id], onUpdate: Restrict, map: "directus_operations_user_created_foreign")
 
   @@index([flow], map: "directus_operations_flow_foreign")
   @@index([user_created], map: "directus_operations_user_created_foreign")
@@ -327,6 +328,7 @@ model directus_sessions {
   ip         String?          @db.VarChar(255)
   user_agent String?          @db.VarChar(255)
   share      String?          @db.Char(36)
+  origin     String?          @db.VarChar(255)
   shareRel   directus_shares? @relation(fields: [share], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_sessions_share_foreign")
   userRel    directus_users?  @relation(fields: [user], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_sessions_user_foreign")
 
@@ -380,10 +382,10 @@ model directus_shares {
   date_end      DateTime?             @db.Timestamp(0)
   times_used    Int?                  @default(0)
   max_uses      Int?
+  sessions      directus_sessions[]
   collectionRel directus_collections? @relation(fields: [collection], references: [collection], onDelete: Cascade, onUpdate: Restrict, map: "directus_shares_collection_foreign")
   roleRel       directus_roles?       @relation(fields: [role], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "directus_shares_role_foreign")
   user          directus_users?       @relation(fields: [user_created], references: [id], onUpdate: Restrict, map: "directus_shares_user_created_foreign")
-  sessions      directus_sessions[]
 
   @@index([collection], map: "directus_shares_collection_foreign")
   @@index([role], map: "directus_shares_role_foreign")
@@ -416,13 +418,17 @@ model directus_users {
   phone                                                    String?                  @db.VarChar(255)
   currentGroupId                                           Int?                     @db.UnsignedInt
   currentGroupRoleId                                       Int?                     @db.UnsignedInt
-  currentGroupMembStatusId                                 Int?                     @db.UnsignedInt
   sysRoleId                                                Int?                     @db.UnsignedInt
-  currentGroup                                             group?                   @relation("directus_users_currentGroupIdTogroup", fields: [currentGroupId], references: [id], onUpdate: Restrict, map: "directus_users_currentgroupid_foreign")
-  group_memb_status                                        group_memb_status?       @relation(fields: [currentGroupMembStatusId], references: [id], onUpdate: Restrict, map: "directus_users_currentgroupmembstatusid_foreign")
-  group_role_directus_users_currentGroupRoleIdTogroup_role group_role?              @relation("directus_users_currentGroupRoleIdTogroup_role", fields: [currentGroupRoleId], references: [id], onUpdate: Restrict, map: "directus_users_currentgrouproleid_foreign")
-  roleRel                                                  directus_roles?          @relation(fields: [role], references: [id], onUpdate: Restrict, map: "directus_users_role_foreign")
-  group_role_directus_users_sysRoleIdTogroup_role          group_role?              @relation("directus_users_sysRoleIdTogroup_role", fields: [sysRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "directus_users_sysroleid_foreign")
+  currentGroupId1                                          Int?
+  currentGroupId2                                          Int?
+  currentGroupId3                                          Int?
+  currentGroupId4                                          Int?
+  currentGroupId5                                          Int?
+  currentGroupId6                                          Int?
+  currentGroupId7                                          Int?
+  currentGroupId8                                          Int?
+  currentGroupId9                                          Int?
+  currentGroupId10                                         Int?
   dashboards                                               directus_dashboards[]
   filesModified                                            directus_files[]         @relation("directus_files_modified_byTodirectus_users")
   filesUploaded                                            directus_files[]         @relation("directus_files_uploaded_byTodirectus_users")
@@ -434,6 +440,10 @@ model directus_users {
   presets                                                  directus_presets[]
   sessions                                                 directus_sessions[]
   shares                                                   directus_shares[]
+  currentGroup                                             group?                   @relation("directus_users_currentGroupIdTogroup", fields: [currentGroupId], references: [id], onUpdate: Restrict, map: "directus_users_currentgroupid_foreign")
+  group_role_directus_users_currentGroupRoleIdTogroup_role group_role?              @relation("directus_users_currentGroupRoleIdTogroup_role", fields: [currentGroupRoleId], references: [id], onUpdate: Restrict, map: "directus_users_currentgrouproleid_foreign")
+  roleRel                                                  directus_roles?          @relation(fields: [role], references: [id], onUpdate: Restrict, map: "directus_users_role_foreign")
+  group_role_directus_users_sysRoleIdTogroup_role          group_role?              @relation("directus_users_sysRoleIdTogroup_role", fields: [sysRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "directus_users_sysroleid_foreign")
   donationsCreated                                         donation[]               @relation("directus_usersTodonation_user_created")
   donationsUpdated                                         donation[]               @relation("directus_usersTodonation_user_updated")
   groupsCreated                                            group[]                  @relation("directus_usersTogroup_user_created")
@@ -453,7 +463,6 @@ model directus_users {
 
   @@index([currentGroupId], map: "directus_users_currentgroupid_foreign")
   @@index([role], map: "directus_users_role_foreign")
-  @@index([currentGroupMembStatusId], map: "directus_users_currentgroupmembstatusid_foreign")
   @@index([currentGroupRoleId], map: "directus_users_currentgrouproleid_foreign")
   @@index([sysRoleId], map: "directus_users_sysroleid_foreign")
 }
@@ -508,18 +517,18 @@ model group {
   tags               String?            @db.VarChar(255)
   domain             String?            @db.VarChar(255)
   parentGroupId      Int?               @db.UnsignedInt
-  isPublic           Boolean?           @default(true)
+  isPublic           Boolean?           @default(false)
   domainValidated    String?            @db.VarChar(255)
   groupTypeId        Int?               @db.UnsignedInt
-  groupRole          group_role?        @relation(fields: [defaultGroupRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_defaultgrouproleid_foreign")
-  group_type         group_type?        @relation(fields: [groupTypeId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_grouptypeid_foreign")
-  group              group?             @relation("groupTogroup", fields: [parentGroupId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_parentgroupid_foreign")
-  userCreated        directus_users?    @relation("directus_usersTogroup_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_created_foreign")
-  userUpdated        directus_users?    @relation("directus_usersTogroup_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_updated_foreign")
   files              directus_files[]
   folders            directus_folders[]
   usersCurrent       directus_users[]   @relation("directus_users_currentGroupIdTogroup")
+  groupRole          group_role?        @relation(fields: [defaultGroupRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_defaultgrouproleid_foreign")
+  group_type         group_type?        @relation(fields: [groupTypeId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_grouptypeid_foreign")
+  group              group?             @relation("groupTogroup", fields: [parentGroupId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_parentgroupid_foreign")
   other_group        group[]            @relation("groupTogroup")
+  userCreated        directus_users?    @relation("directus_usersTogroup_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_created_foreign")
+  userUpdated        directus_users?    @relation("directus_usersTogroup_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_updated_foreign")
   groupMembs         group_memb[]
   links              ws_link[]
   pages              ws_page[]
@@ -535,36 +544,32 @@ model group {
 }
 
 model group_memb {
-  id                Int                @id @default(autoincrement()) @db.UnsignedInt
-  user_created      String?            @db.Char(36)
-  date_created      DateTime?          @db.Timestamp(0)
-  user_updated      String?            @db.Char(36)
-  date_updated      DateTime?          @db.Timestamp(0)
-  groupMembPrefs    String?            @db.LongText
-  groupMembStatusId Int?               @db.UnsignedInt
-  groupRoleId       Int?               @db.UnsignedInt
-  gid               Int?               @db.UnsignedInt
-  uid               String             @db.VarChar(36)
-  lastAccessedDate  DateTime?          @db.Timestamp(0)
-  group             group?             @relation(fields: [gid], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_memb_gid_foreign")
-  groupMembStatus   group_memb_status? @relation(fields: [groupMembStatusId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_memb_groupmembstatusid_foreign")
-  groupRole         group_role?        @relation(fields: [groupRoleId], references: [id], onUpdate: Restrict, map: "group_memb_grouproleid_foreign")
-  userCreated       directus_users?    @relation("directus_usersTogroup_memb_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_memb_user_created_foreign")
-  userUpdated       directus_users?    @relation("directus_usersTogroup_memb_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_memb_user_updated_foreign")
+  id                                                     Int             @id @default(autoincrement()) @db.UnsignedInt
+  user_created                                           String?         @db.Char(36)
+  date_created                                           DateTime?       @db.Timestamp(0)
+  user_updated                                           String?         @db.Char(36)
+  date_updated                                           DateTime?       @db.Timestamp(0)
+  groupMembPrefs                                         String?         @db.LongText
+  groupRoleId                                            Int?            @db.UnsignedInt
+  gid                                                    Int?            @db.UnsignedInt
+  uid                                                    String          @db.VarChar(36)
+  lastAccessedDate                                       DateTime?       @db.Timestamp(0)
+  requestedGroupRoleId                                   Int?            @db.UnsignedInt
+  invitedGroupRoleId                                     Int?            @db.UnsignedInt
+  group                                                  group?          @relation(fields: [gid], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_memb_gid_foreign")
+  groupRole                                              group_role?     @relation(fields: [groupRoleId], references: [id], onUpdate: Restrict, map: "group_memb_grouproleid_foreign")
+  group_role_group_memb_invitedGroupRoleIdTogroup_role   group_role?     @relation("group_memb_invitedGroupRoleIdTogroup_role", fields: [invitedGroupRoleId], references: [id], onUpdate: Restrict, map: "group_memb_invitedgrouproleid_foreign")
+  group_role_group_memb_requestedGroupRoleIdTogroup_role group_role?     @relation("group_memb_requestedGroupRoleIdTogroup_role", fields: [requestedGroupRoleId], references: [id], onUpdate: Restrict, map: "group_memb_requestedgrouproleid_foreign")
+  userCreated                                            directus_users? @relation("directus_usersTogroup_memb_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_memb_user_created_foreign")
+  userUpdated                                            directus_users? @relation("directus_usersTogroup_memb_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_memb_user_updated_foreign")
 
   @@unique([gid, uid], map: "group_memb_uid_gid_ak")
-  @@index([groupMembStatusId], map: "group_memb_groupmembstatusid_foreign")
   @@index([groupRoleId], map: "group_memb_grouproleid_foreign")
   @@index([uid], map: "group_memb_uid_foreign")
   @@index([user_created], map: "group_memb_user_created_foreign")
   @@index([user_updated], map: "group_memb_user_updated_foreign")
-}
-
-model group_memb_status {
-  id              Int              @id @default(autoincrement()) @db.UnsignedInt
-  groupMembStatus String?          @db.VarChar(255)
-  directus_users  directus_users[]
-  groupMembs      group_memb[]
+  @@index([invitedGroupRoleId], map: "group_memb_invitedgrouproleid_foreign")
+  @@index([requestedGroupRoleId], map: "group_memb_requestedgrouproleid_foreign")
 }
 
 model group_role {
@@ -574,6 +579,8 @@ model group_role {
   directus_users_directus_users_sysRoleIdTogroup_role          directus_users[] @relation("directus_users_sysRoleIdTogroup_role")
   groups                                                       group[]
   groupMembs                                                   group_memb[]
+  group_memb_group_memb_invitedGroupRoleIdTogroup_role         group_memb[]     @relation("group_memb_invitedGroupRoleIdTogroup_role")
+  group_memb_group_memb_requestedGroupRoleIdTogroup_role       group_memb[]     @relation("group_memb_requestedGroupRoleIdTogroup_role")
 }
 
 model group_type {
@@ -727,14 +734,14 @@ model ws_website {
   faviconId             String?         @map("favicon") @db.Char(36)
   landscapeLogoId       String?         @map("landscapeLogo") @db.Char(36)
   footerLandscapeLogoId String?         @map("footerLandscapeLogo") @db.Char(36)
+  links                 ws_link[]
+  pages                 ws_page[]
   favicon               directus_files? @relation("directus_filesTows_website_favicon", fields: [faviconId], references: [id], onUpdate: Restrict, map: "ws_website_favicon_foreign")
   footerLandscapeLogo   directus_files? @relation("directus_filesTows_website_footerLandscapeLogo", fields: [footerLandscapeLogoId], references: [id], onUpdate: Restrict, map: "ws_website_footerlandscapelogo_foreign")
   group                 group?          @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "ws_website_groupid_foreign")
   landscapeLogo         directus_files? @relation("directus_filesTows_website_landscapeLogo", fields: [landscapeLogoId], references: [id], onUpdate: Restrict, map: "ws_website_landscapelogo_foreign")
   userCreated           directus_users? @relation("directus_usersTows_website_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_website_user_created_foreign")
   userUpdated           directus_users? @relation("directus_usersTows_website_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "ws_website_user_updated_foreign")
-  links                 ws_link[]
-  pages                 ws_page[]
 
   @@index([groupId], map: "ws_website_groupid_foreign")
   @@index([faviconId], map: "ws_website_favicon_foreign")

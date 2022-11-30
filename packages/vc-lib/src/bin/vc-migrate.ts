@@ -255,6 +255,8 @@ class Main {
     let prismaSchemaPath = options.dirname + "/schema.prisma";
     console.log("Exporting Database Schema [pnpx prisma db pull]...");
     await this.exec("pnpx prisma db pull");
+    console.log("Regenerating Prisma Client [pnpx prisma generate]...");
+    await this.exec("pnpx prisma generate");
     console.log("Copying Database Schema to %s", prismaSchemaPath);
     await fsPromises.copyFile("prisma/schema.prisma", prismaSchemaPath);
 
