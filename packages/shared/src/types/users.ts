@@ -39,6 +39,15 @@ export type User = {
 	email_notifications: boolean;
 	currentGroupId?: number;
 	currentGroupRoleId?: number;
-	currentGroupMembStatusId?: number;
 	sysRoleId?: number;
+	currentGroupId1?: number;
+	currentGroupId2?: number;
+	currentGroupId3?: number;
+	currentGroupId4?: number;
+	currentGroupId5?: number;
+	currentGroupId6?: number;
+	currentGroupId7?: number;
+	currentGroupId8?: number;
+	currentGroupId9?: number;
+	currentGroupId10?: number;
 };
