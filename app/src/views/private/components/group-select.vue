@@ -28,12 +28,10 @@ declare interface GroupData {
   groupname?: string;
   groupLabel?: string;  // needed for the template
   currentGroupRoleId?: number;
-  currentGroupMembStatusId?: number;
 }
 
 // declare interface GroupMembData {
 //   groupRoleId?: number;
-//   groupMembStatusId?: number;
 //   gid?: GroupData;
 // }
 

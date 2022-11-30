@@ -50,12 +50,35 @@ export const useUserStore = defineStore({
 					'role.enforce_tfa',
 					'currentGroupId',
 					'currentGroupRoleId',
-					'currentGroupMembStatusId',
 					'sysRoleId',
+					'currentGroupId1',
+					'currentGroupId2',
+					'currentGroupId3',
+					'currentGroupId4',
+					'currentGroupId5',
+					'currentGroupId6',
+					'currentGroupId7',
+					'currentGroupId8',
+					'currentGroupId9',
+					'currentGroupId10',
 				];
 
 				const { data } = await api.get(`/users/me`, { params: { fields } });
 				// console.log("XXX stores/user", data);
+				// let user = data.data;
+				// if (user) {
+				// 	if (typeof(user.currentGroupId) !== "string") user.currentGroupId = "" + user.currentGroupId;
+				// 	if (typeof(user.currentGroupId1) !== "string") user.currentGroupId1 = "" + user.currentGroupId1;
+				// 	if (typeof(user.currentGroupId2) !== "string") user.currentGroupId2 = "" + user.currentGroupId2;
+				// 	if (typeof(user.currentGroupId3) !== "string") user.currentGroupId3 = "" + user.currentGroupId3;
+				// 	if (typeof(user.currentGroupId4) !== "string") user.currentGroupId4 = "" + user.currentGroupId4;
+				// 	if (typeof(user.currentGroupId5) !== "string") user.currentGroupId5 = "" + user.currentGroupId5;
+				// 	if (typeof(user.currentGroupId6) !== "string") user.currentGroupId6 = "" + user.currentGroupId6;
+				// 	if (typeof(user.currentGroupId7) !== "string") user.currentGroupId7 = "" + user.currentGroupId7;
+				// 	if (typeof(user.currentGroupId8) !== "string") user.currentGroupId8 = "" + user.currentGroupId8;
+				// 	if (typeof(user.currentGroupId9) !== "string") user.currentGroupId9 = "" + user.currentGroupId9;
+				// 	if (typeof(user.currentGroupId10) !== "string") user.currentGroupId10 = "" + user.currentGroupId10;
+				// }
 				this.currentUser = data.data;
 			} catch (error: any) {
 				this.error = error;
