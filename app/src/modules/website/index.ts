@@ -102,11 +102,13 @@ export default defineModule({
 					}),
 					['meta.sort', 'collection']
 				);
-				const { data } = useLocalStorage('last-accessed-collection');
+				const { data } = useLocalStorage('website-last-accessed-collection');
+
 				if (
 					data.value &&
 					collectionsStore.visibleCollections.find((visibleCollection) => visibleCollection.collection === data.value)
 				) {
+
 					return `/website/${data.value}`;
 				}
 				let firstCollection = findFirst(rootCollections);
