@@ -38,7 +38,7 @@ export default defineComponent({
 	setup(props) {
 		const route = useRoute();
 
-		const { data } = useLocalStorage('last-accessed-collection');
+		const { data } = useLocalStorage('teach-last-accessed-collection');
 
 		const collectionsStore = useCollectionsStore();
 
@@ -51,7 +51,12 @@ export default defineComponent({
 			() => route.params,
 			(newParams) => {
 				if (newParams.collection && data.value !== newParams.collection) {
-					data.value = newParams.collection;
+          let path = ''+route.path;
+          let module = path.substring(1, 8);
+
+          if (module === 'teach') {
+            data.value = newParams.collection;
+          }
 				}
 			},
 			{ immediate: true }

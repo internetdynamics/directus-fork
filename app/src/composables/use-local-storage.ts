@@ -1,40 +1,40 @@
-import { ref, watch } from 'vue';
+import { ref, watch } from "vue";
 
 export function useLocalStorage(key: string) {
-	const internalKey = `directus-${key}`;
-	const data = ref<string | number | boolean | object | null>(null);
+  const internalKey: string = `directus-${key}`;
+  const data = ref<string | number | boolean | object | null>(null);
 
-	function getExistingValue() {
-		let rawExistingValue;
-		try {
-			rawExistingValue = localStorage.getItem(internalKey);
-		} catch (err: any) {
-			//
-		}
+  function getExistingValue() {
+    let rawExistingValue;
+    try {
+      rawExistingValue = localStorage.getItem(internalKey);
+    } catch (err: any) {
+      //
+    }
 
-		if (!rawExistingValue) return;
+    if (!rawExistingValue) return;
 
-		try {
-			const existingValue = JSON.parse(rawExistingValue);
-			data.value = existingValue;
-		} catch (err: any) {
-			//
-		}
-	}
+    try {
+      const existingValue = JSON.parse(rawExistingValue);
+      data.value = existingValue;
+    } catch (err: any) {
+      //
+    }
+  }
 
-	getExistingValue();
+  getExistingValue();
 
-	watch(data, () => {
-		try {
-			if (data.value == null) {
-				localStorage.removeItem(internalKey);
-			} else {
-				localStorage.setItem(internalKey, JSON.stringify(data.value));
-			}
-		} catch (err: any) {
-			//
-		}
-	});
+  watch(data, () => {
+    try {
+      if (data.value == null) {
+        localStorage.removeItem(internalKey);
+      } else {
+        localStorage.setItem(internalKey, JSON.stringify(data.value));
+      }
+    } catch (err: any) {
+      //
+    }
+  });
 
-	return { data };
+  return { data };
 }

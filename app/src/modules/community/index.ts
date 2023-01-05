@@ -102,7 +102,7 @@ export default defineModule({
 					}),
 					['meta.sort', 'collection']
 				);
-				const { data } = useLocalStorage('last-accessed-collection');
+				const { data } = useLocalStorage('community-last-accessed-collection');
 				if (
 					data.value &&
 					collectionsStore.visibleCollections.find((visibleCollection) => visibleCollection.collection === data.value)

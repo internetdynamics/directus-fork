@@ -51,7 +51,12 @@ export default defineComponent({
 			() => route.params,
 			(newParams) => {
 				if (newParams.collection && data.value !== newParams.collection) {
-					data.value = newParams.collection;
+          let path = ''+route.path;
+          let module = path.substring(1, 8);
+
+          if (module === 'content') {
+            data.value = newParams.collection;
+          }
 				}
 			},
 			{ immediate: true }
