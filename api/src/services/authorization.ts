@@ -46,6 +46,14 @@ export class AuthorizationService {
 
 	async processAST(ast: AST, action: PermissionsAction = 'read'): Promise<AST> {
 		const collectionsRequested = getCollectionsFromAST(ast);
+		let collection = collectionsRequested[0].collection || ast.name;
+		// 	this.accountability?.permissions?.filter((permission) => {
+		// 		let collReq = collectionsRequested.map(({ collection }) => collection).includes(permission.collection);
+		// 		return (
+		// 			permission.action === action &&
+		// 			collectionsRequested.map(({ collection }) => collection).includes(permission.collection)
+		// 		);
+		// 	}));
 
 		const permissionsForCollections =
 			uniqWith(
