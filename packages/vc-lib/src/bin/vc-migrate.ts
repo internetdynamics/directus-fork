@@ -11,31 +11,12 @@ import { DirectusColumnDef, DirectusSchema, DirectusTableDef } from '../classes/
 import printf from 'printf';
 // import * as lodash from 'lodash';
 
-// let config = new Config();
 let db: IDatabase = new PrismaDatabase() as IDatabase;
 
 let appOptionDefs = {
-  // op: {
-  //   description: "Operations [check,snapshot,update]"
-  // },
   table: {
     description: "Restrict the operation to a single table (or a comma-separated list)"
   },
-  // columns: {
-  //   description: "Column names for get"
-  // },
-  // orderBy: {
-  //   description: "orderBy for get"
-  // },
-  // distinct: {
-  //   description: "Distinct for get"
-  // },
-  // offset: {
-  //   description: "Offset for get"
-  // },
-  // limit: {
-  //   description: "Limit for get"
-  // },
   uploadDir: {
     description: "Path to the files"
   },
@@ -54,6 +35,10 @@ let appOptionDefs = {
   clobber: {
     description: "Clobber existing dir for export (default is false to create a sequence)"
   },
+  regen: {
+    description: "Regenerate Prisma models when export_schema (default=1)",
+    type: "integer",
+  },
   show_sql: {
     description: "Show the SQL statements"
   },
@@ -63,7 +48,7 @@ let appOptionDefs = {
 };
 
 let appOptions = {
-  // op: "snapshot",
+  // op: "export_schema",
   table: "",
   // columns: "",
   // orderBy: "",
@@ -77,6 +62,7 @@ let appOptions = {
   fileext: "json",
   clobber: 0,
   update: 0,
+  regen: 1,
   show_sql: 0,
   verbose: 1,
   args: [],
@@ -86,11 +72,20 @@ function printUsage () {
   console.log();
   console.log("Usage: node dist/bin/vc-migrate.js [--options] <cmd> [<args>]");
   console.log();
-  console.log("       node dist/bin/vc-migrate.js [--options] snapshot    (capture a snapshot of the system state)");
-  console.log("       node dist/bin/vc-migrate.js [--options] check       (check latest snapshot against current system state)");
-  console.log("       node dist/bin/vc-migrate.js [--options] update      (update current system state to the latest snapshot)");
+  console.log("       node dist/bin/vc-migrate.js [--options] export             (export schema, data, files)");
+  console.log("       node dist/bin/vc-migrate.js [--options] export_data_full   (export data, files)");
+  console.log("       node dist/bin/vc-migrate.js [--options] export_schema      (export schema)");
+  console.log("       node dist/bin/vc-migrate.js [--options] export_data        (export data)");
+  console.log("       node dist/bin/vc-migrate.js [--options] export_files       (export files)");
+  console.log("       node dist/bin/vc-migrate.js [--options] import             (import directus, schema, data, files)");
+  console.log("       node dist/bin/vc-migrate.js [--options] import_schema_full (import directus, schema)");
+  console.log("       node dist/bin/vc-migrate.js [--options] import_data_full   (import data, files)");
+  console.log("       node dist/bin/vc-migrate.js [--options] import_directus    (import directus)");
+  console.log("       node dist/bin/vc-migrate.js [--options] import_schema      (import schema)");
+  console.log("       node dist/bin/vc-migrate.js [--options] import_data        (import data)");
+  console.log("       node dist/bin/vc-migrate.js [--options] import_files       (import files)");
   console.log();
-  console.log("       node dist/bin/vc-migrate.js [--options] magic       (print out Directus magic about specified tables)");
+  console.log("       node dist/bin/vc-migrate.js [--options] magic              (print out Directus magic about specified tables)");
   console.log();
   for (let option in appOptionDefs) {
     let optionDef = appOptionDefs[option];
@@ -138,19 +133,19 @@ class Main {
 
   migrationTables = {
     "directus_settings": { updateKeys: [ "id" ] },    // id                            (PK) (Singleton, optional)
-    "directus_webhooks": { updateKeys: [ "name, method, url" ] },    // name, method, url             (not enforced)
+    "directus_webhooks": { updateKeys: [ "name", "method", "url" ] },    // name, method, url             (not enforced)
 
     "directus_collections": { updateKeys: [ "collection" ] }, // collection                    (PK)
-    "directus_fields": { updateKeys: [ "collection, field" ] },      // collection, field             (not enforced)
-    "directus_relations": { updateKeys: [ "many_collection, many_field" ] },   // many_collection, many_field   (not enforced)
+    "directus_fields": { updateKeys: [ "collection", "field" ] },      // collection, field             (not enforced)
+    "directus_relations": { updateKeys: [ "many_collection", "many_field" ] },   // many_collection, many_field   (not enforced)
 
     "directus_users": { updateKeys: [ "email" ] },       // email                         (AK)
-    "directus_shares": { updateKeys: [ "name, collection, item, role" ] },      // name, collection, item, role  (not enforced)
+    "directus_shares": { updateKeys: [ "name", "collection", "item", "role" ] },      // name, collection, item, role  (not enforced)
 
     "directus_roles": { updateKeys: [ "id" ] },       // id (but check for name dups)  (PK)
-    "directus_permissions": { updateKeys: [ "role, collection, actions, presets, fields" ] }, // role, collection, actions, presets, fields   (not enforced)
+    "directus_permissions": { updateKeys: [ "role", "collection", "actions", "presets", "fields" ] }, // role, collection, actions, presets, fields   (not enforced)
 
-    "directus_folders": { updateKeys: [ "name, parent" ] },     // name, parent                  (not enforced)
+    "directus_folders": { updateKeys: [ "name", "parent" ] },     // name, parent                  (not enforced)
     "directus_files": { updateKeys: [ "id" ] },       // id (but check for folder/filename_disk dups) (PK)
 
     "directus_panels": { updateKeys: [ "id" ] },
@@ -193,8 +188,8 @@ class Main {
       process.exit(0);
     }
     let op = args.shift();
-    let table = appOptions.table;
-    let matches: any;
+    // let table = appOptions.table;
+    // let matches: any;
     // let columns: string[] = (appOptions.columns ? appOptions.columns.split(/,/) : undefined) as string[];
     let options: any = {};
     if (appOptions.pathname) options.pathname = appOptions.pathname;
@@ -204,38 +199,30 @@ class Main {
       if (appOptions.fileext) options.fileext = appOptions.fileext;
     }
 
-    if (op === "snapshot") {
-      await this.snapshot(db, appOptions);
-    }
-    else if (op === "magic") {
-      await this.magic(db, appOptions);
-    }
-    else if (op === "check") {
-      appOptions.update = 0;
-      await this.update(db, appOptions);
-    }
-    else if (op === "update") {
-      appOptions.update = 1;
-      await this.update(db, appOptions);
-    }
-    else if (op === "update-directus") {  // Directus DDL (alter table) (npx directus database migrate:latest)
-      // npm install
-      // npm install directus (not always the latest)
-      // npx directus database migrate:latest
-      await this.updateDirectus(db, appOptions);
-    }
-    else if (op === "update-database") {  // Application DDL (alter table) (npx prisma db pull/push)
-      // directus_settings.project_url
-      //   url = url.replace('http://localhost','http://3.93.241.53')
-      //   update directus_settings set project_url = replace(project_url,'http://localhost','http://3.93.241.53');
-      await this.updateDatabase(db, appOptions);
-    }
-    else if (op === "update-data") {  // exported JSON data, merged back in to Directus/Application tables
-      await this.updateData(db, appOptions);
-    }
-    else if (op === "update-files") {  // files copied to /api/uploads directory (while updates made to directus_files)
-      await this.updateFiles(db, appOptions);
-    }
+    if (op === "export")                  { await this.export(db, appOptions); }
+    else if (op === "export_data_full")   { await this.export_data_full(db, appOptions); }
+    else if (op === "export_schema")      { await this.export_schema(db, appOptions); }
+    else if (op === "export_data")        { await this.export_data(db, appOptions); }
+    else if (op === "export_files")       { await this.export_files(db, appOptions); }
+
+    else if (op === "import")             { await this.import(db, appOptions); }
+    else if (op === "import_schema_full") { await this.import_schema_full(db, appOptions); }
+    else if (op === "import_data_full")   { await this.import_data_full(db, appOptions); }
+    // Directus DDL (alter table) (npx directus database migrate:latest)
+    // npm install
+    // npm install directus (not always the latest)
+    // npx directus database migrate:latest
+    else if (op === "import_directus")    { await this.import_directus(db, appOptions); }
+    // Application DDL (alter table) (npx prisma db pull/push)
+    // directus_settings.project_url
+    //   url = url.replace('http://localhost','http://3.93.241.53')
+    //   import directus_settings set project_url = replace(project_url,'http://localhost','http://3.93.241.53');
+    else if (op === "import_schema")      { await this.import_schema(db, appOptions); }
+    // exported JSON data, merged back in to Directus/Application tables
+    else if (op === "import_data")        { await this.import_data(db, appOptions); }
+    // files copied to /api/uploads directory (while imports made to directus_files)
+    else if (op === "import_files")       { await this.import_files(db, appOptions); }
+    else if (op === "magic") { await this.magic(db, appOptions); }
     else if (op === "printf") {  // files copied to /api/uploads directory (while updates made to directus_files)
       await this.testPrintf(db, appOptions);
     }
@@ -249,39 +236,166 @@ class Main {
   // DATABASE STRUCTURES: npx prisma db pull     # EXCLUDE DIRECTUS TABLES !!!
   // DIRECTUS DATA:       exportFile(directus_*)
   // DIRECTUS FILES:      cp -r ../api/uploads ../directus/prod-files
-  async snapshot (db: IDatabase, options: any) {
-    console.log("snapshot");
+  async export (db: IDatabase, options: any) {
+    console.log("export");
+    await this.export_schema(db, options);  // additionaldatabase updates from schema.prisma
+    await this.export_data(db, options);
+    await this.export_files(db, options);
+  }
 
-    let prismaSchemaPath = options.dirname + "/schema.prisma";
-    console.log("Exporting Database Schema [pnpx prisma db pull]...");
-    await this.exec("pnpx prisma db pull");
-    console.log("Regenerating Prisma Client [pnpx prisma generate]...");
-    await this.exec("pnpx prisma generate");
-    console.log("Copying Database Schema to %s", prismaSchemaPath);
-    await fsPromises.copyFile("prisma/schema.prisma", prismaSchemaPath);
+  async export_data_full (db: IDatabase, options: any) {
+    console.log("export_data_full");
+    await this.export_data(db, options);
+    await this.export_files(db, options);
+  }
 
-    options.fileext = "json";
-    for (let tableName in this.migrationTables) {
+  async export_schema (db: IDatabase, options: any) {
+    console.log("Exporting Database Schema (export_schema)");
+
+    let defaultSchemaPathname = "./prisma/schema.prisma";
+    let currentSchemaPathname = "./prisma/schema.prisma-current";
+    let exportSchemaPathname = options.dirname + "/schema.prisma";
+    console.log(`running  [pnpx prisma db pull --schema=${currentSchemaPathname}]...`);
+    await fsPromises.copyFile(defaultSchemaPathname, currentSchemaPathname);
+    await this.exec(`pnpx prisma db pull --schema=${currentSchemaPathname}`);
+
+    let currentSchemaFile = new PrismaSchemaFile(currentSchemaPathname);
+    let defaultSchemaFile = new PrismaSchemaFile(defaultSchemaPathname);
+    currentSchemaFile.printDiffs(defaultSchemaFile);
+
+    if (appOptions.clobber || !fs.existsSync(exportSchemaPathname)) {
+      console.log("Copying Database Schema to %s", exportSchemaPathname);
+      await fsPromises.copyFile(currentSchemaPathname, exportSchemaPathname);
+      if (appOptions.regen && exportSchemaPathname === defaultSchemaPathname) {
+        console.log("Regenerating Prisma Client [pnpx prisma generate]...");
+        console.log("> (Note: use the --regen=0 option to skip this step)");
+        await this.exec("pnpx prisma generate");
+      }
+      else {
+        console.log("Skipped regenerating Prisma Client.");
+      }
+    }
+    // else {
+    //   console.log("> (Note: Nothing in %s updated. Use the --clobber option to do so.)", exportSchemaPathname);
+    // }
+  }
+
+  // async export_schema (db: IDatabase, options: any) {
+  //   console.log("export_schema");
+  //   let schema = fs.readFileSync("prisma/schema.prisma", "utf8");
+  //   fs.writeFileSync("prisma/schema.prisma-current",schema,"utf8");
+  //   let result = await this.exec("pnpx prisma db pull --schema=prisma/schema.prisma-current");
+  //   let latestSchemaFile = new PrismaSchemaFile("prisma/schema.prisma");
+  //   let currentSchemaFile = new PrismaSchemaFile("prisma/schema.prisma-current");
+  // }
+
+  async export_data (db: IDatabase, options: any) {
+    console.log("export_data");
+    let globalVals: any = {};
+    for (let tableName of ["directus_collections"]) {
       let pathname = fmgr.makeExportPathname(tableName, options);
-      console.log("Exporting table [%s] to [%s]", tableName, pathname);
-      await fmgr.exportFile(db, tableName, {}, [], pathname);
-    }
+      let json = await fsPromises.readFile(pathname,"utf8");
+      let objects = JSON.parse(json);
+      if (objects && objects.length) {
+        let columns = Object.keys(objects[0]);
 
-    console.log("Reading Directus and Prisma Schemas ...");
-    let directusSchema = new DirectusSchema();
-    let prismaSchemaFile = new PrismaSchemaFile();
-    await directusSchema.init(options);
+        let errors = [];
+        let warnings = [];
+        let notices = [];
+        options['errors'] = errors;
+        options['warnings'] = warnings;
+        options['notices'] = notices;
 
-    let magicPathname = options.dirname + "/schema.magic";
-    console.log("Writing Directus and Prisma magic ... to [%s]", magicPathname);
-    let fh = await fs.createWriteStream(magicPathname, { encoding: "utf8" });
-    // console.log("XXX tables", directusSchema.tableNames);
-    for (let table of directusSchema.tableNames) {
-      console.log("Directus Magic:", table);
-      this.writeTableMagic(fh, directusSchema.nativeTableDef[table], prismaSchemaFile.nativeTableDef[table]);
-      // this.printTableMagic(directusSchema.nativeTableDef[table], prismaSchemaFile.nativeTableDef[table]);
+        options.updateKeys = this.migrationTables[tableName].updateKeys;
+        await db.storeObjects(tableName, columns, objects, globalVals, options);
+        delete options.updateKeys;
+
+        for (let msg of notices) {
+          console.log("Notice: ", msg);
+        }
+        for (let msg of warnings) {
+          console.log("Warning:", msg);
+        }
+        for (let msg of errors) {
+          console.log("Error:  ", msg);
+        }
+      }
     }
-    await fh.close();
+  }
+
+  async export_files (db: IDatabase, options: any) {
+    console.log("export_files");
+  }
+
+  async import (db: IDatabase, options: any) {
+    console.log("import");
+    await this.import_directus(db, options);  // database updates from Directus code base
+    await this.import_schema(db, options);  // additionaldatabase updates from schema.prisma
+    await this.import_data(db, options);
+    await this.import_files(db, options);
+  }
+
+  async import_schema_full (db: IDatabase, options: any) {
+    console.log("import_schema_full");
+    await this.import_directus(db, options);  // database updates from Directus code base
+    await this.import_schema(db, options);  // additionaldatabase updates from schema.prisma
+  }
+
+  async import_data_full (db: IDatabase, options: any) {
+    console.log("import_data_full");
+    await this.import_data(db, options);
+    await this.import_files(db, options);
+  }
+
+  async import_directus (db: IDatabase, options: any) {
+    console.log("import_directus");
+  }
+
+  async import_schema (db: IDatabase, options: any) {
+    console.log("import_schema");
+    let schema = fs.readFileSync("prisma/schema.prisma", "utf8");
+    fs.writeFileSync("prisma/schema.prisma-current",schema,"utf8");
+    let result = await this.exec("pnpx prisma db pull --schema=prisma/schema.prisma-current");
+    let latestSchemaFile = new PrismaSchemaFile("prisma/schema.prisma");
+    let currentSchemaFile = new PrismaSchemaFile("prisma/schema.prisma-current");
+  }
+
+  async import_data (db: IDatabase, options: any) {
+    console.log("import_data");
+    let globalVals: any = {};
+    for (let tableName of ["directus_collections"]) {
+      let pathname = fmgr.makeExportPathname(tableName, options);
+      let json = await fsPromises.readFile(pathname,"utf8");
+      let objects = JSON.parse(json);
+      if (objects && objects.length) {
+        let columns = Object.keys(objects[0]);
+
+        let errors = [];
+        let warnings = [];
+        let notices = [];
+        options['errors'] = errors;
+        options['warnings'] = warnings;
+        options['notices'] = notices;
+
+        options.updateKeys = this.migrationTables[tableName].updateKeys;
+        await db.storeObjects(tableName, columns, objects, globalVals, options);
+        delete options.updateKeys;
+
+        for (let msg of notices) {
+          console.log("Notice: ", msg);
+        }
+        for (let msg of warnings) {
+          console.log("Warning:", msg);
+        }
+        for (let msg of errors) {
+          console.log("Error:  ", msg);
+        }
+      }
+    }
+  }
+
+  async import_files (db: IDatabase, options: any) {
+    console.log("import_files");
   }
 
   async magic (db: IDatabase, options: any) {
@@ -626,65 +740,6 @@ class Main {
     printf(fh, "D-FIELD: %s\n%O\n", columnDef.field, vals);
     // console.log(columnDef);
     // console.log(`    %s %j`, columnDef.field, columnDef);
-  }
-
-  async update (db: IDatabase, options: any) {
-    console.log("update");
-    await this.updateDirectus(db, options);
-    await this.updateDatabase(db, options);
-    await this.updateData(db, options);
-    await this.updateFiles(db, options);
-  }
-
-  async updateDirectus (db: IDatabase, options: any) {
-    console.log("updateDirectus");
-  }
-
-  async updateDatabase (db: IDatabase, options: any) {
-    console.log("updateDatabase");
-    let schema = fs.readFileSync("prisma/schema.prisma", "utf8");
-    fs.writeFileSync("prisma/schema.prisma-current",schema,"utf8");
-    let result = await this.exec("pnpx prisma db pull --schema=prisma/schema.prisma-current");
-    let latestSchemaFile = new PrismaSchemaFile("prisma/schema.prisma");
-    let currentSchemaFile = new PrismaSchemaFile("prisma/schema.prisma-current");
-  }
-
-  async updateData (db: IDatabase, options: any) {
-    console.log("updateData");
-    let globalVals: any = {};
-    for (let tableName of ["directus_collections"]) {
-      let pathname = fmgr.makeExportPathname(tableName, options);
-      let json = await fsPromises.readFile(pathname,"utf8");
-      let objects = JSON.parse(json);
-      if (objects && objects.length) {
-        let columns = Object.keys(objects[0]);
-
-        let errors = [];
-        let warnings = [];
-        let notices = [];
-        options['errors'] = errors;
-        options['warnings'] = warnings;
-        options['notices'] = notices;
-
-        options.updateKeys = this.migrationTables[tableName].updateKeys;
-        await db.storeObjects(tableName, columns, objects, globalVals, options);
-        delete options.updateKeys;
-
-        for (let msg of notices) {
-          console.log("Notice: ", msg);
-        }
-        for (let msg of warnings) {
-          console.log("Warning:", msg);
-        }
-        for (let msg of errors) {
-          console.log("Error:  ", msg);
-        }
-      }
-    }
-  }
-
-  async updateFiles (db: IDatabase, options: any) {
-    console.log("updateFiles");
   }
 
   async exec (cmd: string) {
