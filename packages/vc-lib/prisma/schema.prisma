@@ -118,6 +118,8 @@ model directus_files {
   settingsByProjectLogo         directus_settings[] @relation("directus_filesTodirectus_settings_project_logo")
   settingsByPublicBackground    directus_settings[] @relation("directus_filesTodirectus_settings_public_background")
   settingsByPublicForeground    directus_settings[] @relation("directus_filesTodirectus_settings_public_foreground")
+  lesson_answer                 lesson_answer[]
+  lesson_section                lesson_section[]
   pages                         ws_page[]
   sectionsBySectionImage2       ws_section[]        @relation("directus_filesTows_section_sectionImage2")
   sectionsBySectionImages       ws_section[]        @relation("directus_filesTows_section_sectionImage")
@@ -393,73 +395,108 @@ model directus_shares {
 }
 
 model directus_users {
-  id                                                       String                   @id @db.Char(36)
-  first_name                                               String?                  @db.VarChar(50)
-  last_name                                                String?                  @db.VarChar(50)
-  email                                                    String?                  @unique(map: "directus_users_email_unique") @db.VarChar(128)
-  password                                                 String?                  @db.VarChar(255)
-  location                                                 String?                  @db.VarChar(255)
-  title                                                    String?                  @db.VarChar(50)
-  description                                              String?                  @db.Text
-  tags                                                     String?                  @db.LongText
-  avatar                                                   String?                  @db.Char(36)
-  language                                                 String?                  @db.VarChar(255)
-  theme                                                    String?                  @default("auto") @db.VarChar(20)
-  tfa_secret                                               String?                  @db.VarChar(255)
-  status                                                   String                   @default("active") @db.VarChar(16)
-  role                                                     String?                  @db.Char(36)
-  token                                                    String?                  @unique(map: "directus_users_token_unique") @db.VarChar(255)
-  last_access                                              DateTime?                @db.Timestamp(0)
-  last_page                                                String?                  @db.VarChar(255)
-  provider                                                 String                   @default("default") @db.VarChar(128)
-  external_identifier                                      String?                  @unique(map: "directus_users_external_identifier_unique") @db.VarChar(255)
-  auth_data                                                String?                  @db.LongText
-  email_notifications                                      Boolean?                 @default(true)
-  phone                                                    String?                  @db.VarChar(255)
-  currentGroupId                                           Int?                     @db.UnsignedInt
-  currentGroupRoleId                                       Int?                     @db.UnsignedInt
-  sysRoleId                                                Int?                     @db.UnsignedInt
-  currentGroupId1                                          Int?
-  currentGroupId2                                          Int?
-  currentGroupId3                                          Int?
-  currentGroupId4                                          Int?
-  currentGroupId5                                          Int?
-  currentGroupId6                                          Int?
-  currentGroupId7                                          Int?
-  currentGroupId8                                          Int?
-  currentGroupId9                                          Int?
-  currentGroupId10                                         Int?
-  dashboards                                               directus_dashboards[]
-  filesModified                                            directus_files[]         @relation("directus_files_modified_byTodirectus_users")
-  filesUploaded                                            directus_files[]         @relation("directus_files_uploaded_byTodirectus_users")
-  flows                                                    directus_flows[]
-  notificationsReceived                                    directus_notifications[] @relation("directus_notifications_recipientTodirectus_users")
-  notificationsSent                                        directus_notifications[] @relation("directus_notifications_senderTodirectus_users")
-  operations                                               directus_operations[]
-  panels                                                   directus_panels[]
-  presets                                                  directus_presets[]
-  sessions                                                 directus_sessions[]
-  shares                                                   directus_shares[]
-  currentGroup                                             group?                   @relation("directus_users_currentGroupIdTogroup", fields: [currentGroupId], references: [id], onUpdate: Restrict, map: "directus_users_currentgroupid_foreign")
-  group_role_directus_users_currentGroupRoleIdTogroup_role group_role?              @relation("directus_users_currentGroupRoleIdTogroup_role", fields: [currentGroupRoleId], references: [id], onUpdate: Restrict, map: "directus_users_currentgrouproleid_foreign")
-  roleRel                                                  directus_roles?          @relation(fields: [role], references: [id], onUpdate: Restrict, map: "directus_users_role_foreign")
-  group_role_directus_users_sysRoleIdTogroup_role          group_role?              @relation("directus_users_sysRoleIdTogroup_role", fields: [sysRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "directus_users_sysroleid_foreign")
-  donationsCreated                                         donation[]               @relation("directus_usersTodonation_user_created")
-  donationsUpdated                                         donation[]               @relation("directus_usersTodonation_user_updated")
-  groupsCreated                                            group[]                  @relation("directus_usersTogroup_user_created")
-  groupsUpdated                                            group[]                  @relation("directus_usersTogroup_user_updated")
-  groupMembsCreated                                        group_memb[]             @relation("directus_usersTogroup_memb_user_created")
-  groupMembsUpdated                                        group_memb[]             @relation("directus_usersTogroup_memb_user_updated")
-  linksCreated                                             ws_link[]                @relation("directus_usersTows_link_user_created")
-  linksUpdated                                             ws_link[]                @relation("directus_usersTows_link_user_updated")
-  pagesCreated                                             ws_page[]                @relation("directus_usersTows_page_user_created")
-  pagesUpdated                                             ws_page[]                @relation("directus_usersTows_page_user_updated")
-  sectionsCreated                                          ws_section[]             @relation("directus_usersTows_section_user_created")
-  sectionsUpdated                                          ws_section[]             @relation("directus_usersTows_section_user_updated")
-  sectionItemsCreated                                      ws_section_item[]        @relation("directus_usersTows_section_item_user_created")
-  sectionItemsUpdated                                      ws_section_item[]        @relation("directus_usersTows_section_item_user_updated")
-  websitesCreated                                          ws_website[]             @relation("directus_usersTows_website_user_created")
-  websitesUpdated                                          ws_website[]             @relation("directus_usersTows_website_user_updated")
+  id                                                                     String                   @id @db.Char(36)
+  first_name                                                             String?                  @db.VarChar(50)
+  last_name                                                              String?                  @db.VarChar(50)
+  email                                                                  String?                  @unique(map: "directus_users_email_unique") @db.VarChar(128)
+  password                                                               String?                  @db.VarChar(255)
+  location                                                               String?                  @db.VarChar(255)
+  title                                                                  String?                  @db.VarChar(50)
+  description                                                            String?                  @db.Text
+  tags                                                                   String?                  @db.LongText
+  avatar                                                                 String?                  @db.Char(36)
+  language                                                               String?                  @db.VarChar(255)
+  theme                                                                  String?                  @default("auto") @db.VarChar(20)
+  tfa_secret                                                             String?                  @db.VarChar(255)
+  status                                                                 String                   @default("active") @db.VarChar(16)
+  role                                                                   String?                  @db.Char(36)
+  token                                                                  String?                  @unique(map: "directus_users_token_unique") @db.VarChar(255)
+  last_access                                                            DateTime?                @db.Timestamp(0)
+  last_page                                                              String?                  @db.VarChar(255)
+  provider                                                               String                   @default("default") @db.VarChar(128)
+  external_identifier                                                    String?                  @unique(map: "directus_users_external_identifier_unique") @db.VarChar(255)
+  auth_data                                                              String?                  @db.LongText
+  email_notifications                                                    Boolean?                 @default(true)
+  phone                                                                  String?                  @db.VarChar(255)
+  currentGroupId                                                         Int?                     @db.UnsignedInt
+  currentGroupRoleId                                                     Int?                     @db.UnsignedInt
+  sysRoleId                                                              Int?                     @db.UnsignedInt
+  currentGroupId1                                                        String?                  @db.VarChar(12)
+  currentGroupId2                                                        String?                  @db.VarChar(12)
+  currentGroupId3                                                        String?                  @db.VarChar(12)
+  currentGroupId4                                                        String?                  @db.VarChar(12)
+  currentGroupId5                                                        String?                  @db.VarChar(12)
+  currentGroupId6                                                        String?                  @db.VarChar(12)
+  currentGroupId7                                                        String?                  @db.VarChar(12)
+  currentGroupId8                                                        String?                  @db.VarChar(12)
+  currentGroupId9                                                        String?                  @db.VarChar(12)
+  currentGroupId10                                                       String?                  @db.VarChar(12)
+  acctg_account_acctg_account_user_createdTodirectus_users               acctg_account[]          @relation("acctg_account_user_createdTodirectus_users")
+  acctg_account_acctg_account_user_updatedTodirectus_users               acctg_account[]          @relation("acctg_account_user_updatedTodirectus_users")
+  course_course_user_createdTodirectus_users                             course[]                 @relation("course_user_createdTodirectus_users")
+  course_course_user_updatedTodirectus_users                             course[]                 @relation("course_user_updatedTodirectus_users")
+  course_enrollment_course_enrollment_user_createdTodirectus_users       course_enrollment[]      @relation("course_enrollment_user_createdTodirectus_users")
+  course_enrollment_course_enrollment_user_updatedTodirectus_users       course_enrollment[]      @relation("course_enrollment_user_updatedTodirectus_users")
+  course_enrollment_course_enrollment_userIdTodirectus_users             course_enrollment[]      @relation("course_enrollment_userIdTodirectus_users")
+  dashboards                                                             directus_dashboards[]
+  filesModified                                                          directus_files[]         @relation("directus_files_modified_byTodirectus_users")
+  filesUploaded                                                          directus_files[]         @relation("directus_files_uploaded_byTodirectus_users")
+  flows                                                                  directus_flows[]
+  notificationsReceived                                                  directus_notifications[] @relation("directus_notifications_recipientTodirectus_users")
+  notificationsSent                                                      directus_notifications[] @relation("directus_notifications_senderTodirectus_users")
+  operations                                                             directus_operations[]
+  panels                                                                 directus_panels[]
+  presets                                                                directus_presets[]
+  sessions                                                               directus_sessions[]
+  shares                                                                 directus_shares[]
+  currentGroup                                                           group?                   @relation("directus_users_currentGroupIdTogroup", fields: [currentGroupId], references: [id], onUpdate: Restrict, map: "directus_users_currentgroupid_foreign")
+  group_role_directus_users_currentGroupRoleIdTogroup_role               group_role?              @relation("directus_users_currentGroupRoleIdTogroup_role", fields: [currentGroupRoleId], references: [id], onUpdate: Restrict, map: "directus_users_currentgrouproleid_foreign")
+  roleRel                                                                directus_roles?          @relation(fields: [role], references: [id], onUpdate: Restrict, map: "directus_users_role_foreign")
+  group_role_directus_users_sysRoleIdTogroup_role                        group_role?              @relation("directus_users_sysRoleIdTogroup_role", fields: [sysRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "directus_users_sysroleid_foreign")
+  donation_donation_advisingDonorUserIdTodirectus_users                  donation[]               @relation("donation_advisingDonorUserIdTodirectus_users")
+  donation_donation_donorUserIdTodirectus_users                          donation[]               @relation("donation_donorUserIdTodirectus_users")
+  donationsCreated                                                       donation[]               @relation("directus_usersTodonation_user_created")
+  donationsUpdated                                                       donation[]               @relation("directus_usersTodonation_user_updated")
+  fin_account_fin_account_user_createdTodirectus_users                   fin_account[]            @relation("fin_account_user_createdTodirectus_users")
+  fin_account_fin_account_user_updatedTodirectus_users                   fin_account[]            @relation("fin_account_user_updatedTodirectus_users")
+  fin_transaction_fin_transaction_user_createdTodirectus_users           fin_transaction[]        @relation("fin_transaction_user_createdTodirectus_users")
+  fin_transaction_fin_transaction_user_updatedTodirectus_users           fin_transaction[]        @relation("fin_transaction_user_updatedTodirectus_users")
+  groupsCreated                                                          group[]                  @relation("directus_usersTogroup_user_created")
+  groupsUpdated                                                          group[]                  @relation("directus_usersTogroup_user_updated")
+  groupMembsCreated                                                      group_memb[]             @relation("directus_usersTogroup_memb_user_created")
+  groupMembsUpdated                                                      group_memb[]             @relation("directus_usersTogroup_memb_user_updated")
+  lesson_lesson_user_createdTodirectus_users                             lesson[]                 @relation("lesson_user_createdTodirectus_users")
+  lesson_lesson_user_updatedTodirectus_users                             lesson[]                 @relation("lesson_user_updatedTodirectus_users")
+  lesson_answer_lesson_answer_user_createdTodirectus_users               lesson_answer[]          @relation("lesson_answer_user_createdTodirectus_users")
+  lesson_answer_lesson_answer_user_updatedTodirectus_users               lesson_answer[]          @relation("lesson_answer_user_updatedTodirectus_users")
+  lesson_answer_lesson_answer_userIdTodirectus_users                     lesson_answer[]          @relation("lesson_answer_userIdTodirectus_users")
+  lesson_answer_option_lesson_answer_option_user_createdTodirectus_users lesson_answer_option[]   @relation("lesson_answer_option_user_createdTodirectus_users")
+  lesson_answer_option_lesson_answer_option_user_updatedTodirectus_users lesson_answer_option[]   @relation("lesson_answer_option_user_updatedTodirectus_users")
+  lesson_enrollment_lesson_enrollment_user_createdTodirectus_users       lesson_enrollment[]      @relation("lesson_enrollment_user_createdTodirectus_users")
+  lesson_enrollment_lesson_enrollment_user_updatedTodirectus_users       lesson_enrollment[]      @relation("lesson_enrollment_user_updatedTodirectus_users")
+  lesson_enrollment_lesson_enrollment_userIdTodirectus_users             lesson_enrollment[]      @relation("lesson_enrollment_userIdTodirectus_users")
+  lesson_question_lesson_question_user_createdTodirectus_users           lesson_question[]        @relation("lesson_question_user_createdTodirectus_users")
+  lesson_question_lesson_question_user_updatedTodirectus_users           lesson_question[]        @relation("lesson_question_user_updatedTodirectus_users")
+  lesson_section_lesson_section_user_createdTodirectus_users             lesson_section[]         @relation("lesson_section_user_createdTodirectus_users")
+  lesson_section_lesson_section_user_updatedTodirectus_users             lesson_section[]         @relation("lesson_section_user_updatedTodirectus_users")
+  project_project_user_createdTodirectus_users                           project[]                @relation("project_user_createdTodirectus_users")
+  project_project_user_updatedTodirectus_users                           project[]                @relation("project_user_updatedTodirectus_users")
+  scheduled_course_scheduled_course_instructorUserIdTodirectus_users     scheduled_course[]       @relation("scheduled_course_instructorUserIdTodirectus_users")
+  scheduled_course_scheduled_course_user_createdTodirectus_users         scheduled_course[]       @relation("scheduled_course_user_createdTodirectus_users")
+  scheduled_course_scheduled_course_user_updatedTodirectus_users         scheduled_course[]       @relation("scheduled_course_user_updatedTodirectus_users")
+  scheduled_lesson_scheduled_lesson_instructorUserIdTodirectus_users     scheduled_lesson[]       @relation("scheduled_lesson_instructorUserIdTodirectus_users")
+  scheduled_lesson_scheduled_lesson_user_createdTodirectus_users         scheduled_lesson[]       @relation("scheduled_lesson_user_createdTodirectus_users")
+  scheduled_lesson_scheduled_lesson_user_updatedTodirectus_users         scheduled_lesson[]       @relation("scheduled_lesson_user_updatedTodirectus_users")
+  linksCreated                                                           ws_link[]                @relation("directus_usersTows_link_user_created")
+  linksUpdated                                                           ws_link[]                @relation("directus_usersTows_link_user_updated")
+  pagesCreated                                                           ws_page[]                @relation("directus_usersTows_page_user_created")
+  pagesUpdated                                                           ws_page[]                @relation("directus_usersTows_page_user_updated")
+  sectionsCreated                                                        ws_section[]             @relation("directus_usersTows_section_user_created")
+  sectionsUpdated                                                        ws_section[]             @relation("directus_usersTows_section_user_updated")
+  sectionItemsCreated                                                    ws_section_item[]        @relation("directus_usersTows_section_item_user_created")
+  sectionItemsUpdated                                                    ws_section_item[]        @relation("directus_usersTows_section_item_user_updated")
+  websitesCreated                                                        ws_website[]             @relation("directus_usersTows_website_user_created")
+  websitesUpdated                                                        ws_website[]             @relation("directus_usersTows_website_user_updated")
 
   @@index([currentGroupId], map: "directus_users_currentgroupid_foreign")
   @@index([role], map: "directus_users_role_foreign")
@@ -480,67 +517,119 @@ model directus_webhooks {
 }
 
 model donation {
-  id             Int             @id @default(autoincrement()) @db.UnsignedInt
-  sort           Int?
-  user_created   String?         @db.Char(36)
-  date_created   DateTime?       @db.Timestamp(0)
-  user_updated   String?         @db.Char(36)
-  date_updated   DateTime?       @db.Timestamp(0)
-  donationStatus String?         @db.VarChar(255)
-  donationDate   DateTime?       @db.Date
-  donationAmount Decimal?        @db.Decimal(10, 5)
-  paymentType    String?         @db.VarChar(255)
-  donationMethod String?         @db.VarChar(255)
-  donorEmail     String?         @db.VarChar(255)
-  donorName      String?         @db.VarChar(255)
-  donorAddress   String?         @db.VarChar(255)
-  donorPhone     String?         @db.VarChar(255)
-  userCreated    directus_users? @relation("directus_usersTodonation_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "donation_user_created_foreign")
-  userUpdated    directus_users? @relation("directus_usersTodonation_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "donation_user_updated_foreign")
+  id                                                          Int              @id @default(autoincrement()) @db.UnsignedInt
+  sort                                                        Int?
+  user_created                                                String?          @db.Char(36)
+  date_created                                                DateTime?        @db.Timestamp(0)
+  user_updated                                                String?          @db.Char(36)
+  date_updated                                                DateTime?        @db.Timestamp(0)
+  donationStatus                                              String?          @db.VarChar(255)
+  donationDate                                                DateTime?        @db.Date
+  donationAmount                                              Decimal?         @db.Decimal(10, 5)
+  paymentType                                                 String?          @db.VarChar(255)
+  donationMethod                                              String?          @db.VarChar(255)
+  donorEmail                                                  String?          @db.VarChar(255)
+  donorName                                                   String?          @db.VarChar(255)
+  donorAddress                                                String?          @db.VarChar(255)
+  donorPhone                                                  String?          @db.VarChar(255)
+  groupId                                                     Int?             @db.UnsignedInt
+  donorUserId                                                 String?          @db.Char(36)
+  advisingDonorUserId                                         String?          @db.Char(36)
+  receivedFinAccountId                                        Int?             @db.UnsignedInt
+  projectFundAcctgAccountId                                   Int?             @db.UnsignedInt
+  donationTransactionId                                       Int?             @db.UnsignedInt
+  donorType                                                   String?          @db.VarChar(255)
+  advisingDonorName                                           String?          @db.VarChar(255)
+  advisingDonorEmail                                          String?          @db.VarChar(255)
+  directus_users_donation_advisingDonorUserIdTodirectus_users directus_users?  @relation("donation_advisingDonorUserIdTodirectus_users", fields: [advisingDonorUserId], references: [id], onUpdate: Restrict, map: "donation_advisingdonoruserid_foreign")
+  fin_transaction                                             fin_transaction? @relation(fields: [donationTransactionId], references: [id], onUpdate: Restrict, map: "donation_donationtransactionid_foreign")
+  directus_users_donation_donorUserIdTodirectus_users         directus_users?  @relation("donation_donorUserIdTodirectus_users", fields: [donorUserId], references: [id], onUpdate: Restrict, map: "donation_donoruserid_foreign")
+  group                                                       group?           @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "donation_groupid_foreign")
+  acctg_account                                               acctg_account?   @relation(fields: [projectFundAcctgAccountId], references: [id], onUpdate: Restrict, map: "donation_projectfundacctgaccountid_foreign")
+  fin_account                                                 fin_account?     @relation(fields: [receivedFinAccountId], references: [id], onUpdate: Restrict, map: "donation_receivedfinaccountid_foreign")
+  userCreated                                                 directus_users?  @relation("directus_usersTodonation_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "donation_user_created_foreign")
+  userUpdated                                                 directus_users?  @relation("directus_usersTodonation_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "donation_user_updated_foreign")
 
   @@index([user_created], map: "donation_user_created_foreign")
   @@index([user_updated], map: "donation_user_updated_foreign")
+  @@index([advisingDonorUserId], map: "donation_advisingdonoruserid_foreign")
+  @@index([donationTransactionId], map: "donation_donationtransactionid_foreign")
+  @@index([donorUserId], map: "donation_donoruserid_foreign")
+  @@index([groupId], map: "donation_groupid_foreign")
+  @@index([projectFundAcctgAccountId], map: "donation_projectfundacctgaccountid_foreign")
+  @@index([receivedFinAccountId], map: "donation_receivedfinaccountid_foreign")
 }
 
 model group {
-  id                 Int                @id @default(autoincrement()) @db.UnsignedInt
-  status             String?            @default("published") @db.VarChar(255)
-  user_created       String?            @db.Char(36)
-  date_created       DateTime?          @db.Timestamp(0)
-  user_updated       String?            @db.Char(36)
-  date_updated       DateTime?          @db.Timestamp(0)
-  groupname          String             @unique(map: "group_groupname_ak") @db.VarChar(255)
-  groupDisplayName   String?            @db.VarChar(255)
-  groupDescription   String?            @db.Text
-  groupPrefs         String?            @db.LongText
-  defaultGroupRoleId Int?               @db.UnsignedInt
-  tags               String?            @db.VarChar(255)
-  domain             String?            @db.VarChar(255)
-  parentGroupId      Int?               @db.UnsignedInt
-  isPublic           Boolean?           @default(false)
-  domainValidated    String?            @db.VarChar(255)
-  groupTypeId        Int?               @db.UnsignedInt
-  files              directus_files[]
-  folders            directus_folders[]
-  usersCurrent       directus_users[]   @relation("directus_users_currentGroupIdTogroup")
-  groupRole          group_role?        @relation(fields: [defaultGroupRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_defaultgrouproleid_foreign")
-  group_type         group_type?        @relation(fields: [groupTypeId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_grouptypeid_foreign")
-  group              group?             @relation("groupTogroup", fields: [parentGroupId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_parentgroupid_foreign")
-  other_group        group[]            @relation("groupTogroup")
-  userCreated        directus_users?    @relation("directus_usersTogroup_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_created_foreign")
-  userUpdated        directus_users?    @relation("directus_usersTogroup_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_updated_foreign")
-  groupMembs         group_memb[]
-  links              ws_link[]
-  pages              ws_page[]
-  sections           ws_section[]
-  sectionItems       ws_section_item[]
-  websites           ws_website[]
+  id                                    Int                    @id @default(autoincrement()) @db.UnsignedInt
+  status                                String?                @default("published") @db.VarChar(255)
+  user_created                          String?                @db.Char(36)
+  date_created                          DateTime?              @db.Timestamp(0)
+  user_updated                          String?                @db.Char(36)
+  date_updated                          DateTime?              @db.Timestamp(0)
+  groupname                             String                 @unique(map: "group_groupname_ak") @db.VarChar(255)
+  groupDisplayName                      String?                @db.VarChar(255)
+  groupDescription                      String?                @db.Text
+  groupPrefs                            String?                @db.LongText
+  defaultGroupRoleId                    Int?                   @db.UnsignedInt
+  tags                                  String?                @db.VarChar(255)
+  domain                                String?                @db.VarChar(255)
+  parentGroupId                         Int?                   @db.UnsignedInt
+  isPublic                              Boolean?               @default(false)
+  domainValidated                       String?                @db.VarChar(255)
+  groupTypeId                           Int?                   @db.UnsignedInt
+  website                               String?                @db.VarChar(255)
+  facebookUrl                           String?                @db.VarChar(255)
+  instagramUrl                          String?                @db.VarChar(255)
+  youtubeUrl                            String?                @db.VarChar(255)
+  twitterUrl                            String?                @db.VarChar(255)
+  adminGroupId                          Int?                   @db.UnsignedInt
+  contactName                           String?                @db.VarChar(255)
+  contactEmail                          String?                @db.VarChar(255)
+  phoneNumber                           String?                @db.VarChar(255)
+  address                               String?                @db.VarChar(255)
+  address2                              String?                @db.VarChar(255)
+  city                                  String?                @db.VarChar(255)
+  state                                 String?                @db.VarChar(255)
+  postalCode                            String?                @db.VarChar(255)
+  country                               String?                @db.VarChar(255)
+  acctg_account                         acctg_account[]
+  course                                course[]
+  course_enrollment                     course_enrollment[]
+  files                                 directus_files[]
+  folders                               directus_folders[]
+  usersCurrent                          directus_users[]       @relation("directus_users_currentGroupIdTogroup")
+  donation                              donation[]
+  group_group_adminGroupIdTogroup       group?                 @relation("group_adminGroupIdTogroup", fields: [adminGroupId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_admingroupid_foreign")
+  other_group_group_adminGroupIdTogroup group[]                @relation("group_adminGroupIdTogroup")
+  groupRole                             group_role?            @relation(fields: [defaultGroupRoleId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_defaultgrouproleid_foreign")
+  group_type                            group_type?            @relation(fields: [groupTypeId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_grouptypeid_foreign")
+  group                                 group?                 @relation("groupTogroup", fields: [parentGroupId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "group_parentgroupid_foreign")
+  other_group                           group[]                @relation("groupTogroup")
+  userCreated                           directus_users?        @relation("directus_usersTogroup_user_created", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_created_foreign")
+  userUpdated                           directus_users?        @relation("directus_usersTogroup_user_updated", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "group_user_updated_foreign")
+  groupMembs                            group_memb[]
+  lesson                                lesson[]
+  lesson_answer                         lesson_answer[]
+  lesson_answer_option                  lesson_answer_option[]
+  lesson_enrollment                     lesson_enrollment[]
+  lesson_question                       lesson_question[]
+  lesson_section                        lesson_section[]
+  project                               project[]
+  scheduled_course                      scheduled_course[]
+  scheduled_lesson                      scheduled_lesson[]
+  links                                 ws_link[]
+  pages                                 ws_page[]
+  sections                              ws_section[]
+  sectionItems                          ws_section_item[]
+  websites                              ws_website[]
 
   @@index([defaultGroupRoleId], map: "group_defaultgrouproleid_foreign")
   @@index([user_created], map: "group_user_created_foreign")
   @@index([user_updated], map: "group_user_updated_foreign")
   @@index([groupTypeId], map: "group_grouptypeid_foreign")
   @@index([parentGroupId], map: "group_parentgroupid_foreign")
+  @@index([adminGroupId], map: "group_admingroupid_foreign")
 }
 
 model group_memb {
@@ -757,4 +846,388 @@ model group_relationship {
   date_created DateTime? @db.Timestamp(0)
   user_updated String?   @db.Char(36)
   date_updated DateTime? @db.Timestamp(0)
+}
+
+model acctg_account {
+  id                                                                  Int               @id @default(autoincrement()) @db.UnsignedInt
+  sort                                                                Int?
+  user_created                                                        String?           @db.Char(36)
+  date_created                                                        DateTime?         @db.Timestamp(0)
+  user_updated                                                        String?           @db.Char(36)
+  date_updated                                                        DateTime?         @db.Timestamp(0)
+  acctgAccountCat                                                     String?           @db.VarChar(255)
+  acctgAccountType                                                    String?           @db.VarChar(255)
+  acctgAccountName                                                    String?           @db.VarChar(255)
+  acctgAccountCode                                                    String?           @db.VarChar(255)
+  groupId                                                             Int?              @db.UnsignedInt
+  group                                                               group?            @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "acctg_account_groupid_foreign")
+  directus_users_acctg_account_user_createdTodirectus_users           directus_users?   @relation("acctg_account_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "acctg_account_user_created_foreign")
+  directus_users_acctg_account_user_updatedTodirectus_users           directus_users?   @relation("acctg_account_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "acctg_account_user_updated_foreign")
+  donation                                                            donation[]
+  fin_transaction_fin_transaction_creditAcctgAccountIdToacctg_account fin_transaction[] @relation("fin_transaction_creditAcctgAccountIdToacctg_account")
+  fin_transaction_fin_transaction_debitAcctgAccountIdToacctg_account  fin_transaction[] @relation("fin_transaction_debitAcctgAccountIdToacctg_account")
+  project                                                             project[]
+
+  @@index([groupId], map: "acctg_account_groupid_foreign")
+  @@index([user_created], map: "acctg_account_user_created_foreign")
+  @@index([user_updated], map: "acctg_account_user_updated_foreign")
+}
+
+model course {
+  id                                                 Int                 @id @default(autoincrement()) @db.UnsignedInt
+  status                                             String              @default("draft") @db.VarChar(255)
+  sort                                               Int?
+  user_created                                       String?             @db.Char(36)
+  date_created                                       DateTime?           @db.Timestamp(0)
+  user_updated                                       String?             @db.Char(36)
+  date_updated                                       DateTime?           @db.Timestamp(0)
+  groupId                                            Int?                @db.UnsignedInt
+  courseTitle                                        String?             @db.VarChar(255)
+  courseDescription                                  String?             @db.Text
+  isPublic                                           Boolean?            @default(true)
+  group                                              group?              @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "course_groupid_foreign")
+  directus_users_course_user_createdTodirectus_users directus_users?     @relation("course_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "course_user_created_foreign")
+  directus_users_course_user_updatedTodirectus_users directus_users?     @relation("course_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "course_user_updated_foreign")
+  course_enrollment                                  course_enrollment[]
+  lesson                                             lesson[]
+  scheduled_course                                   scheduled_course[]
+
+  @@index([groupId], map: "course_groupid_foreign")
+  @@index([user_created], map: "course_user_created_foreign")
+  @@index([user_updated], map: "course_user_updated_foreign")
+}
+
+model course_enrollment {
+  id                                                            Int               @id @default(autoincrement()) @db.UnsignedInt
+  status                                                        String            @default("draft") @db.VarChar(255)
+  user_created                                                  String?           @db.Char(36)
+  date_created                                                  DateTime?         @db.Timestamp(0)
+  user_updated                                                  String?           @db.Char(36)
+  date_updated                                                  DateTime?         @db.Timestamp(0)
+  groupId                                                       Int?              @db.UnsignedInt
+  courseId                                                      Int?              @db.UnsignedInt
+  userId                                                        String?           @db.Char(36)
+  scheduledCourseId                                             Int?              @db.UnsignedInt
+  startDate                                                     DateTime?         @db.Date
+  lastProgressDate                                              DateTime?         @db.Date
+  completeDate                                                  DateTime?         @db.Date
+  studentCourseScore                                            Int?
+  course                                                        course?           @relation(fields: [courseId], references: [id], onUpdate: Restrict, map: "course_enrollment_courseid_foreign")
+  group                                                         group?            @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "course_enrollment_groupid_foreign")
+  scheduled_course                                              scheduled_course? @relation(fields: [scheduledCourseId], references: [id], onUpdate: Restrict, map: "course_enrollment_scheduledcourseid_foreign")
+  directus_users_course_enrollment_user_createdTodirectus_users directus_users?   @relation("course_enrollment_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "course_enrollment_user_created_foreign")
+  directus_users_course_enrollment_user_updatedTodirectus_users directus_users?   @relation("course_enrollment_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "course_enrollment_user_updated_foreign")
+  directus_users_course_enrollment_userIdTodirectus_users       directus_users?   @relation("course_enrollment_userIdTodirectus_users", fields: [userId], references: [id], onUpdate: Restrict, map: "course_enrollment_userid_foreign")
+
+  @@index([courseId], map: "course_enrollment_courseid_foreign")
+  @@index([groupId], map: "course_enrollment_groupid_foreign")
+  @@index([scheduledCourseId], map: "course_enrollment_scheduledcourseid_foreign")
+  @@index([user_created], map: "course_enrollment_user_created_foreign")
+  @@index([user_updated], map: "course_enrollment_user_updated_foreign")
+  @@index([userId], map: "course_enrollment_userid_foreign")
+}
+
+model fin_account {
+  id                                                              Int               @id @default(autoincrement()) @db.UnsignedInt
+  sort                                                            Int?
+  user_created                                                    String?           @db.Char(36)
+  date_created                                                    DateTime?         @db.Timestamp(0)
+  user_updated                                                    String?           @db.Char(36)
+  date_updated                                                    DateTime?         @db.Timestamp(0)
+  finAccountCode                                                  String?           @db.VarChar(255)
+  finAccountInstitution                                           String?           @db.VarChar(255)
+  finAccountNumber                                                String?           @db.VarChar(255)
+  finAccountNumberSuffix                                          String?           @db.VarChar(255)
+  donation                                                        donation[]
+  directus_users_fin_account_user_createdTodirectus_users         directus_users?   @relation("fin_account_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fin_account_user_created_foreign")
+  directus_users_fin_account_user_updatedTodirectus_users         directus_users?   @relation("fin_account_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fin_account_user_updated_foreign")
+  fin_transaction_fin_transaction_creditFinAccountIdTofin_account fin_transaction[] @relation("fin_transaction_creditFinAccountIdTofin_account")
+  fin_transaction_fin_transaction_debitFinAccountIdTofin_account  fin_transaction[] @relation("fin_transaction_debitFinAccountIdTofin_account")
+
+  @@index([user_created], map: "fin_account_user_created_foreign")
+  @@index([user_updated], map: "fin_account_user_updated_foreign")
+}
+
+model fin_transaction {
+  id                                                                Int             @id @default(autoincrement()) @db.UnsignedInt
+  user_created                                                      String?         @db.Char(36)
+  date_created                                                      DateTime?       @db.Timestamp(0)
+  user_updated                                                      String?         @db.Char(36)
+  date_updated                                                      DateTime?       @db.Timestamp(0)
+  transactionAmount                                                 Decimal?        @db.Decimal(10, 5)
+  transactionDate                                                   DateTime?       @db.DateTime(0)
+  debitFinAccountId                                                 Int?            @db.UnsignedInt
+  creditFinAccountId                                                Int?            @db.UnsignedInt
+  debitAcctgAccountId                                               Int?            @db.UnsignedInt
+  creditAcctgAccountId                                              Int?            @db.UnsignedInt
+  donation                                                          donation[]
+  acctg_account_fin_transaction_creditAcctgAccountIdToacctg_account acctg_account?  @relation("fin_transaction_creditAcctgAccountIdToacctg_account", fields: [creditAcctgAccountId], references: [id], onUpdate: Restrict, map: "fin_transaction_creditacctgaccountid_foreign")
+  fin_account_fin_transaction_creditFinAccountIdTofin_account       fin_account?    @relation("fin_transaction_creditFinAccountIdTofin_account", fields: [creditFinAccountId], references: [id], onUpdate: Restrict, map: "fin_transaction_creditfinaccountid_foreign")
+  acctg_account_fin_transaction_debitAcctgAccountIdToacctg_account  acctg_account?  @relation("fin_transaction_debitAcctgAccountIdToacctg_account", fields: [debitAcctgAccountId], references: [id], onUpdate: Restrict, map: "fin_transaction_debitacctgaccountid_foreign")
+  fin_account_fin_transaction_debitFinAccountIdTofin_account        fin_account?    @relation("fin_transaction_debitFinAccountIdTofin_account", fields: [debitFinAccountId], references: [id], onUpdate: Restrict, map: "fin_transaction_debitfinaccountid_foreign")
+  directus_users_fin_transaction_user_createdTodirectus_users       directus_users? @relation("fin_transaction_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fin_transaction_user_created_foreign")
+  directus_users_fin_transaction_user_updatedTodirectus_users       directus_users? @relation("fin_transaction_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fin_transaction_user_updated_foreign")
+
+  @@index([creditAcctgAccountId], map: "fin_transaction_creditacctgaccountid_foreign")
+  @@index([creditFinAccountId], map: "fin_transaction_creditfinaccountid_foreign")
+  @@index([debitAcctgAccountId], map: "fin_transaction_debitacctgaccountid_foreign")
+  @@index([debitFinAccountId], map: "fin_transaction_debitfinaccountid_foreign")
+  @@index([user_created], map: "fin_transaction_user_created_foreign")
+  @@index([user_updated], map: "fin_transaction_user_updated_foreign")
+}
+
+model lesson {
+  id                                                 Int                 @id @default(autoincrement()) @db.UnsignedInt
+  status                                             String              @default("draft") @db.VarChar(255)
+  sort                                               Int?
+  user_created                                       String?             @db.Char(36)
+  date_created                                       DateTime?           @db.Timestamp(0)
+  user_updated                                       String?             @db.Char(36)
+  date_updated                                       DateTime?           @db.Timestamp(0)
+  groupId                                            Int?                @db.UnsignedInt
+  courseId                                           Int?                @db.UnsignedInt
+  lessonTitle                                        String?             @db.VarChar(255)
+  lessonDescription                                  String?             @db.Text
+  courseDay                                          Int?
+  homeworkDescription                                String?             @db.Text
+  lessonWeight                                       Float?              @db.Float
+  course                                             course?             @relation(fields: [courseId], references: [id], onUpdate: Restrict, map: "lesson_courseid_foreign")
+  group                                              group?              @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "lesson_groupid_foreign")
+  directus_users_lesson_user_createdTodirectus_users directus_users?     @relation("lesson_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_user_created_foreign")
+  directus_users_lesson_user_updatedTodirectus_users directus_users?     @relation("lesson_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_user_updated_foreign")
+  lesson_enrollment                                  lesson_enrollment[]
+  lesson_section                                     lesson_section[]
+  scheduled_lesson                                   scheduled_lesson[]
+
+  @@index([courseId], map: "lesson_courseid_foreign")
+  @@index([groupId], map: "lesson_groupid_foreign")
+  @@index([user_created], map: "lesson_user_created_foreign")
+  @@index([user_updated], map: "lesson_user_updated_foreign")
+}
+
+model lesson_answer {
+  id                                                        Int                   @id @default(autoincrement()) @db.UnsignedInt
+  status                                                    String                @default("draft") @db.VarChar(255)
+  sort                                                      Int?
+  user_created                                              String?               @db.Char(36)
+  date_created                                              DateTime?             @db.Timestamp(0)
+  user_updated                                              String?               @db.Char(36)
+  date_updated                                              DateTime?             @db.Timestamp(0)
+  groupId                                                   Int?                  @db.UnsignedInt
+  userId                                                    String?               @db.Char(36)
+  questionId                                                Int?                  @db.UnsignedInt
+  optionId                                                  Int?                  @db.UnsignedInt
+  fileId                                                    String?               @db.Char(36)
+  pctCorrect                                                Int?
+  directus_files                                            directus_files?       @relation(fields: [fileId], references: [id], onUpdate: Restrict, map: "lesson_answer_fileid_foreign")
+  group                                                     group?                @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "lesson_answer_groupid_foreign")
+  lesson_answer_option                                      lesson_answer_option? @relation(fields: [optionId], references: [id], onDelete: NoAction, onUpdate: Restrict, map: "lesson_answer_optionid_foreign")
+  lesson_question                                           lesson_question?      @relation(fields: [questionId], references: [id], onUpdate: Restrict, map: "lesson_answer_questionid_foreign")
+  directus_users_lesson_answer_user_createdTodirectus_users directus_users?       @relation("lesson_answer_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_answer_user_created_foreign")
+  directus_users_lesson_answer_user_updatedTodirectus_users directus_users?       @relation("lesson_answer_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_answer_user_updated_foreign")
+  directus_users_lesson_answer_userIdTodirectus_users       directus_users?       @relation("lesson_answer_userIdTodirectus_users", fields: [userId], references: [id], onUpdate: Restrict, map: "lesson_answer_userid_foreign")
+
+  @@index([fileId], map: "lesson_answer_fileid_foreign")
+  @@index([groupId], map: "lesson_answer_groupid_foreign")
+  @@index([optionId], map: "lesson_answer_optionid_foreign")
+  @@index([questionId], map: "lesson_answer_questionid_foreign")
+  @@index([user_created], map: "lesson_answer_user_created_foreign")
+  @@index([user_updated], map: "lesson_answer_user_updated_foreign")
+  @@index([userId], map: "lesson_answer_userid_foreign")
+}
+
+model lesson_answer_option {
+  id                                                               Int              @id @default(autoincrement()) @db.UnsignedInt
+  status                                                           String           @default("draft") @db.VarChar(255)
+  sort                                                             Int?
+  user_created                                                     String?          @db.Char(36)
+  date_created                                                     DateTime?        @db.Timestamp(0)
+  user_updated                                                     String?          @db.Char(36)
+  date_updated                                                     DateTime?        @db.Timestamp(0)
+  groupId                                                          Int?             @db.UnsignedInt
+  questionId                                                       Int?             @db.UnsignedInt
+  answer                                                           String?          @db.VarChar(255)
+  isCorrect                                                        Boolean?
+  lesson_answer                                                    lesson_answer[]
+  group                                                            group?           @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "lesson_answer_option_groupid_foreign")
+  lesson_question                                                  lesson_question? @relation(fields: [questionId], references: [id], onUpdate: Restrict, map: "lesson_answer_option_questionid_foreign")
+  directus_users_lesson_answer_option_user_createdTodirectus_users directus_users?  @relation("lesson_answer_option_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_answer_option_user_created_foreign")
+  directus_users_lesson_answer_option_user_updatedTodirectus_users directus_users?  @relation("lesson_answer_option_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_answer_option_user_updated_foreign")
+
+  @@index([groupId], map: "lesson_answer_option_groupid_foreign")
+  @@index([questionId], map: "lesson_answer_option_questionid_foreign")
+  @@index([user_created], map: "lesson_answer_option_user_created_foreign")
+  @@index([user_updated], map: "lesson_answer_option_user_updated_foreign")
+}
+
+model lesson_enrollment {
+  id                                                            Int               @id @default(autoincrement()) @db.UnsignedInt
+  status                                                        String            @default("draft") @db.VarChar(255)
+  user_created                                                  String?           @db.Char(36)
+  date_created                                                  DateTime?         @db.Timestamp(0)
+  user_updated                                                  String?           @db.Char(36)
+  date_updated                                                  DateTime?         @db.Timestamp(0)
+  groupId                                                       Int?              @db.UnsignedInt
+  lessonId                                                      Int?              @db.UnsignedInt
+  scheduledLessonId                                             Int?              @db.UnsignedInt
+  lessonStartDate                                               DateTime?         @db.Date
+  lessonProgressDate                                            DateTime?         @db.Date
+  lessonCompleteDate                                            DateTime?         @db.Date
+  studentLessonScore                                            Int?
+  userId                                                        String?           @db.Char(36)
+  group                                                         group?            @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "lesson_enrollment_groupid_foreign")
+  lesson                                                        lesson?           @relation(fields: [lessonId], references: [id], onUpdate: Restrict, map: "lesson_enrollment_lessonid_foreign")
+  scheduled_lesson                                              scheduled_lesson? @relation(fields: [scheduledLessonId], references: [id], onUpdate: Restrict, map: "lesson_enrollment_scheduledlessonid_foreign")
+  directus_users_lesson_enrollment_user_createdTodirectus_users directus_users?   @relation("lesson_enrollment_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_enrollment_user_created_foreign")
+  directus_users_lesson_enrollment_user_updatedTodirectus_users directus_users?   @relation("lesson_enrollment_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_enrollment_user_updated_foreign")
+  directus_users_lesson_enrollment_userIdTodirectus_users       directus_users?   @relation("lesson_enrollment_userIdTodirectus_users", fields: [userId], references: [id], onUpdate: Restrict, map: "lesson_enrollment_userid_foreign")
+
+  @@index([groupId], map: "lesson_enrollment_groupid_foreign")
+  @@index([lessonId], map: "lesson_enrollment_lessonid_foreign")
+  @@index([scheduledLessonId], map: "lesson_enrollment_scheduledlessonid_foreign")
+  @@index([user_created], map: "lesson_enrollment_user_created_foreign")
+  @@index([user_updated], map: "lesson_enrollment_user_updated_foreign")
+  @@index([userId], map: "lesson_enrollment_userid_foreign")
+}
+
+model lesson_question {
+  id                                                          Int                    @id @default(autoincrement()) @db.UnsignedInt
+  status                                                      String                 @default("draft") @db.VarChar(255)
+  sort                                                        Int?
+  user_created                                                String?                @db.Char(36)
+  date_created                                                DateTime?              @db.Timestamp(0)
+  user_updated                                                String?                @db.Char(36)
+  date_updated                                                DateTime?              @db.Timestamp(0)
+  groupId                                                     Int?                   @db.UnsignedInt
+  lessonSectionId                                             Int?                   @db.UnsignedInt
+  questionType                                                String?                @db.VarChar(255)
+  question                                                    String?                @db.VarChar(255)
+  questionWeight                                              Float?                 @db.Float
+  randomizeAnswers                                            Boolean?
+  lesson_answer                                               lesson_answer[]
+  lesson_answer_option                                        lesson_answer_option[]
+  group                                                       group?                 @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "lesson_question_groupid_foreign")
+  lesson_section                                              lesson_section?        @relation(fields: [lessonSectionId], references: [id], onUpdate: Restrict, map: "lesson_question_lessonsectionid_foreign")
+  directus_users_lesson_question_user_createdTodirectus_users directus_users?        @relation("lesson_question_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_question_user_created_foreign")
+  directus_users_lesson_question_user_updatedTodirectus_users directus_users?        @relation("lesson_question_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_question_user_updated_foreign")
+
+  @@index([groupId], map: "lesson_question_groupid_foreign")
+  @@index([lessonSectionId], map: "lesson_question_lessonsectionid_foreign")
+  @@index([user_created], map: "lesson_question_user_created_foreign")
+  @@index([user_updated], map: "lesson_question_user_updated_foreign")
+}
+
+model lesson_section {
+  id                                                         Int               @id @default(autoincrement()) @db.UnsignedInt
+  status                                                     String            @default("draft") @db.VarChar(255)
+  sort                                                       Int?
+  user_created                                               String?           @db.Char(36)
+  date_created                                               DateTime?         @db.Timestamp(0)
+  user_updated                                               String?           @db.Char(36)
+  date_updated                                               DateTime?         @db.Timestamp(0)
+  groupId                                                    Int?              @db.UnsignedInt
+  lessonId                                                   Int?              @db.UnsignedInt
+  sectionType                                                String?           @db.VarChar(255)
+  sectionSubtype                                             String?           @db.VarChar(255)
+  sectionTitle                                               String?           @db.VarChar(255)
+  sectionText                                                String?           @db.Text
+  url                                                        String?           @db.VarChar(255)
+  fileId                                                     String?           @db.Char(36)
+  lesson_question                                            lesson_question[]
+  directus_files                                             directus_files?   @relation(fields: [fileId], references: [id], onUpdate: Restrict, map: "lesson_section_fileid_foreign")
+  group                                                      group?            @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "lesson_section_groupid_foreign")
+  lesson                                                     lesson?           @relation(fields: [lessonId], references: [id], onUpdate: Restrict, map: "lesson_section_lessonid_foreign")
+  directus_users_lesson_section_user_createdTodirectus_users directus_users?   @relation("lesson_section_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_section_user_created_foreign")
+  directus_users_lesson_section_user_updatedTodirectus_users directus_users?   @relation("lesson_section_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "lesson_section_user_updated_foreign")
+
+  @@index([fileId], map: "lesson_section_fileid_foreign")
+  @@index([groupId], map: "lesson_section_groupid_foreign")
+  @@index([lessonId], map: "lesson_section_lessonid_foreign")
+  @@index([user_created], map: "lesson_section_user_created_foreign")
+  @@index([user_updated], map: "lesson_section_user_updated_foreign")
+}
+
+model project {
+  id                                                  Int             @id @default(autoincrement()) @db.UnsignedInt
+  status                                              String          @default("draft") @db.VarChar(255)
+  sort                                                Int?
+  user_created                                        String?         @db.Char(36)
+  date_created                                        DateTime?       @db.Timestamp(0)
+  user_updated                                        String?         @db.Char(36)
+  date_updated                                        DateTime?       @db.Timestamp(0)
+  groupId                                             Int?            @db.UnsignedInt
+  projectFundAcctgAccountId                           Int?            @db.UnsignedInt
+  projectName                                         String?         @db.VarChar(255)
+  projectDescription                                  String?         @db.Text
+  deliverablesDescription                             String?         @db.Text
+  startDate                                           DateTime?       @db.Date
+  progressDate                                        DateTime?       @db.Date
+  completeDate                                        DateTime?       @db.Date
+  progressPctComplete                                 Int?
+  progressDescription                                 String?         @db.Text
+  scheduledStartDate                                  DateTime?       @db.Date
+  scheduledCompleteDate                               DateTime?       @db.Date
+  group                                               group?          @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "project_groupid_foreign")
+  acctg_account                                       acctg_account?  @relation(fields: [projectFundAcctgAccountId], references: [id], onUpdate: Restrict, map: "project_projectfundacctgaccountid_foreign")
+  directus_users_project_user_createdTodirectus_users directus_users? @relation("project_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "project_user_created_foreign")
+  directus_users_project_user_updatedTodirectus_users directus_users? @relation("project_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "project_user_updated_foreign")
+
+  @@index([groupId], map: "project_groupid_foreign")
+  @@index([projectFundAcctgAccountId], map: "project_projectfundacctgaccountid_foreign")
+  @@index([user_created], map: "project_user_created_foreign")
+  @@index([user_updated], map: "project_user_updated_foreign")
+}
+
+model scheduled_course {
+  id                                                               Int                 @id @default(autoincrement()) @db.UnsignedInt
+  user_created                                                     String?             @db.Char(36)
+  date_created                                                     DateTime?           @db.Timestamp(0)
+  user_updated                                                     String?             @db.Char(36)
+  date_updated                                                     DateTime?           @db.Timestamp(0)
+  groupId                                                          Int?                @db.UnsignedInt
+  courseId                                                         Int?                @db.UnsignedInt
+  instructorUserId                                                 String?             @db.Char(36)
+  scheduledStartDate                                               DateTime?           @db.Date
+  scheduledEndDate                                                 DateTime?           @db.Date
+  course_enrollment                                                course_enrollment[]
+  course                                                           course?             @relation(fields: [courseId], references: [id], onUpdate: Restrict, map: "scheduled_course_courseid_foreign")
+  group                                                            group?              @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "scheduled_course_groupid_foreign")
+  directus_users_scheduled_course_instructorUserIdTodirectus_users directus_users?     @relation("scheduled_course_instructorUserIdTodirectus_users", fields: [instructorUserId], references: [id], onUpdate: Restrict, map: "scheduled_course_instructoruserid_foreign")
+  directus_users_scheduled_course_user_createdTodirectus_users     directus_users?     @relation("scheduled_course_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "scheduled_course_user_created_foreign")
+  directus_users_scheduled_course_user_updatedTodirectus_users     directus_users?     @relation("scheduled_course_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "scheduled_course_user_updated_foreign")
+  scheduled_lesson                                                 scheduled_lesson[]
+
+  @@index([courseId], map: "scheduled_course_courseid_foreign")
+  @@index([groupId], map: "scheduled_course_groupid_foreign")
+  @@index([instructorUserId], map: "scheduled_course_instructoruserid_foreign")
+  @@index([user_created], map: "scheduled_course_user_created_foreign")
+  @@index([user_updated], map: "scheduled_course_user_updated_foreign")
+}
+
+model scheduled_lesson {
+  id                                                               Int                 @id @default(autoincrement()) @db.UnsignedInt
+  user_created                                                     String?             @db.Char(36)
+  date_created                                                     DateTime?           @db.Timestamp(0)
+  user_updated                                                     String?             @db.Char(36)
+  date_updated                                                     DateTime?           @db.Timestamp(0)
+  groupId                                                          Int?                @db.UnsignedInt
+  lessonId                                                         Int?                @db.UnsignedInt
+  scheduledCourseId                                                Int?                @db.UnsignedInt
+  instructorUserId                                                 String?             @db.Char(36)
+  scheduledLessonDate                                              DateTime?           @db.Date
+  scheduledLessonTime                                              DateTime?           @db.Time(0)
+  lesson_enrollment                                                lesson_enrollment[]
+  group                                                            group?              @relation(fields: [groupId], references: [id], onUpdate: Restrict, map: "scheduled_lesson_groupid_foreign")
+  directus_users_scheduled_lesson_instructorUserIdTodirectus_users directus_users?     @relation("scheduled_lesson_instructorUserIdTodirectus_users", fields: [instructorUserId], references: [id], onUpdate: Restrict, map: "scheduled_lesson_instructoruserid_foreign")
+  lesson                                                           lesson?             @relation(fields: [lessonId], references: [id], onUpdate: Restrict, map: "scheduled_lesson_lessonid_foreign")
+  scheduled_course                                                 scheduled_course?   @relation(fields: [scheduledCourseId], references: [id], onUpdate: Restrict, map: "scheduled_lesson_scheduledcourseid_foreign")
+  directus_users_scheduled_lesson_user_createdTodirectus_users     directus_users?     @relation("scheduled_lesson_user_createdTodirectus_users", fields: [user_created], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "scheduled_lesson_user_created_foreign")
+  directus_users_scheduled_lesson_user_updatedTodirectus_users     directus_users?     @relation("scheduled_lesson_user_updatedTodirectus_users", fields: [user_updated], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "scheduled_lesson_user_updated_foreign")
+
+  @@index([groupId], map: "scheduled_lesson_groupid_foreign")
+  @@index([instructorUserId], map: "scheduled_lesson_instructoruserid_foreign")
+  @@index([lessonId], map: "scheduled_lesson_lessonid_foreign")
+  @@index([scheduledCourseId], map: "scheduled_lesson_scheduledcourseid_foreign")
+  @@index([user_created], map: "scheduled_lesson_user_created_foreign")
+  @@index([user_updated], map: "scheduled_lesson_user_updated_foreign")
 }
