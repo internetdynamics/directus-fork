@@ -3,15 +3,20 @@ Modified Directus Source Files:
         package.json
         pnpm-lock.yaml
 
-        api/src/app.ts             # rename "admin" to "app" (x4). enable more controllers (web service API endpoints).
-        api/src/services/index.ts  # enable more services
+        api/src/app.ts                   # rename "admin" to "app" (x4). enable more controllers (web service API endpoints).
+        api/src/services/index.ts        # enable more services
         api/src/types/index.ts
+        api/src/utils/get-user-auth.ts   # add groupId to signature of getUserAuth(userId, groupId)
+        api/tsconfig.json                # sourceMaps: true
 
         app/src/lang/translations/en-US.yaml   # to rename modules
+        app/src/lang/translations/en-CA.yaml   # to rename modules
+        app/src/lang/translations/en-GB.yaml   # to rename modules
         app/src/modules/content/index.ts
         app/src/stores/user.ts
 
-        modified:   packages/shared/src/types/users.ts
+        packages/shared/src/types/users.ts
+
 
 New files:
 
@@ -24,6 +29,7 @@ New files:
         api/src/types/groups.ts
         api/src/utils/get-ext-user.ts
 
+        app/src/modules/website/
         app/src/modules/community/
         app/src/modules/learn/
         app/src/modules/teach/
