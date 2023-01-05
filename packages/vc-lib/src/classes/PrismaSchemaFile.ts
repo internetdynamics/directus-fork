@@ -1,6 +1,6 @@
 
 import { DBTableDef, DBColumnDef, DBRelationshipDef, DBTableDefs } from './DBInterfaces';
-import * as lodash from 'lodash';
+// import * as lodash from 'lodash';
 import * as fs from 'fs';
 
 export interface PrismaColumnDef {
@@ -62,7 +62,7 @@ export interface PrismaTableDefs {
 }
 
 export class PrismaSchemaFile {
-  pathname: string;
+  public pathname: string;
   nativeTableDef: any = {};
   tableDef: any = {};
   tableNames: string[];
@@ -98,8 +98,8 @@ export class PrismaSchemaFile {
     }
   }
 
-  async getTableNames (pattern?: string) {
-    console.log("PrismaDatabase.getTableNames(%s)", pattern);
+  getTableNames (pattern?: string) {
+    // console.log("PrismaSchemaFile.getTableNames(%s)", pattern);
     let tableNames: string[] = [];
     let regexp;
     if (pattern) {
@@ -119,6 +119,10 @@ export class PrismaSchemaFile {
     let nativeTableDef: PrismaTableDef = this.nativeTableDef[tableName];
     // console.log("getNativeTableDef(%s)", tableName, nativeTableDef);
     return(nativeTableDef);
+  }
+
+  getNativeTableDefs (): any {
+    return(this.nativeTableDef);
   }
 
   getTableDef (tableName: string): DBTableDef {
@@ -185,7 +189,7 @@ export class PrismaSchemaFile {
     console.log(`  fields: [`);
     if (tableDef.fields) {
       for (let field of tableDef.fields) {
-        this.printNativeColumnDef(field);
+        console.log(this.formatNativeColumnDef(field));
       }
     }
     console.log(`  ]`);
@@ -210,7 +214,7 @@ export class PrismaSchemaFile {
   // relationToFields?:          string[];  // ["id"], []
   // isGenerated?:               boolean;   // false, false
   // isUpdatedAt?:               boolean;   // false, false
-  private printNativeColumnDef (fieldDef: PrismaColumnDef) {
+  private formatNativeColumnDef (fieldDef: PrismaColumnDef) {
     // console.log(`    // %j`, fieldDef);
     let name = (fieldDef.relationFromFields) ? (fieldDef.relationFromFields.length > 0 ? "TO-ONE-RELATIONSHIP" : "TO-MANY-RELATIONSHIP") : fieldDef.name;
     let str = "    " + this.format(name, 28) + "  ";
@@ -231,7 +235,7 @@ export class PrismaSchemaFile {
       let to = fieldDef.type + ".UNK";
       str += `  [${from} => ${to}]`;
     }
-    console.log(str);
+    return(str);
   }
 
   protected makeLabel (columnName: string, tableName?: string, tableDef?: object) {
@@ -595,6 +599,89 @@ export class PrismaSchemaFile {
       tableNames = Object.keys(nativeTableDefs);
     }
     return(tableNames);
+  }
+
+  printDiffs (prevSchemaFile: PrismaSchemaFile) {
+    console.log("######################################################################################");
+    console.log("# Schema Differences between the last standard export and the current database");
+    // console.log("# [%s] => [%s]", prevSchemaFile.pathname, this.pathname);
+    console.log("######################################################################################");
+    // let natTableDefs: PrismaTableDef[] = [];
+    let nativeTableDefs = this.nativeTableDef;
+    let prevNativeTableDefs = prevSchemaFile.getNativeTableDefs();
+    let tableNames = this.tableNames;
+    let prevTableNames = prevSchemaFile.getTableNames();
+
+    let tablesUnchanged: string[] = [];
+    let tableNameSeen: any = {};
+    for (let tableName of tableNames) {
+      if (prevNativeTableDefs[tableName]) {
+        // console.log("%s (diffs)", tableName);
+        if (!this.printTableDiff(prevNativeTableDefs[tableName], nativeTableDefs[tableName])) {
+          tablesUnchanged.push(tableName);
+        }
+        tableNameSeen[tableName] = true;
+      }
+    }
+
+    for (let tableName of tableNames) {
+      if (!prevNativeTableDefs[tableName]) {
+        console.log("%s (added)", tableName);
+        tableNameSeen[tableName] = true;
+      }
+    }
+
+    for (let prevTableName of prevTableNames) {
+      if (! tableNameSeen[prevTableName]) {
+        console.log("%s (deleted)", prevTableName);
+      }
+      tableNameSeen[prevTableName] = true;
+    }
+
+    if (tablesUnchanged.length > 0) {
+      console.log("Unchanged: (%s tables) %j", tablesUnchanged.length, tablesUnchanged);
+    }
+    console.log();
+  }
+
+  printTableDiff(prevTableDef: PrismaTableDef, tableDef: PrismaTableDef) {
+    console.log("printTableDef(%s [%s], %s [%s])", prevTableDef.name, prevTableDef.fields?.length, tableDef.name, tableDef.fields?.length);
+    this.printNativeTableDef(tableDef);
+    let diff = 0;
+    let buf = `Table: ${tableDef.name}`;
+    // console.log("{");
+    // console.log(`  name: %j,`, tableDef.name);
+    // console.log(`  dbName: %j,`, tableDef.dbName);
+    // console.log(`  fields: [`);
+    let prevField: any = {};
+    if (prevTableDef.fields) {
+      for (let field of prevTableDef.fields) {
+        prevField[field.name] = field;
+      }
+    }
+    if (tableDef.fields) {
+      for (let field of tableDef.fields) {
+        console.log("Checking %s.%s ...", tableDef.name, field.name);
+        let name = field.name;
+        let formattedField = this.formatNativeColumnDef(field);
+        if (prevField[name]) {
+          let formattedPrevField = this.formatNativeColumnDef(prevField[name]);
+          if (formattedField !== formattedPrevField) {
+            if (buf) { console.log(buf); buf = ""; }
+            diff = 1;
+            console.log(`PREV: ${formattedPrevField}`);
+            console.log(`CURR: ${formattedField}`);
+          }
+        }
+      }
+    }
+    // console.log(`  ]`);
+    // console.log(`  primaryKey: %j,`, tableDef.primaryKey);
+    // console.log(`  uniqueFields: %j,`, tableDef.uniqueFields);
+    // console.log(`  uniqueIndexes: %j,`, tableDef.uniqueIndexes);
+    // console.log(`  isGenerated: %j`, tableDef.isGenerated);
+    // console.log("}");
+    return(diff);
   }
 
   convertPrismaTableDefsToTableDefs (natTableDefs: PrismaTableDefs, tableDefs: DBTableDefs) {
