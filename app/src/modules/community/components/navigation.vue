@@ -80,17 +80,18 @@ export default defineComponent({
 			// console.log('XXX shownCollections', shownCollections);
 
 			let collections = [];
+			let collectionUsed: any = {
+				"group": "Groups",
+				"group_memb": "Current Group Members"
+			};
 			for (let i = 0; i < shownCollections.length; i++) {
 				let collection = shownCollections[i];
-				if (collection.collection === 'group') {
-					collection.name = "Groups";
-					collections.push(collection);
-				}
-				else if (collection.collection === 'group_memb') {
-					collection.name = "Current Group Members";
+				if (collectionUsed[collection.collection]) {
+					collection.name = collectionUsed[collection.collection];
 					collections.push(collection);
 				}
 			}
+
 			// for (let i = systemCollections.length - 1; i >= 0; i--) {
 			// 	let collection = systemCollections[i];
 			// 	if (collection.collection === 'directus_users') {

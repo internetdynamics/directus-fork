@@ -94,14 +94,14 @@ export default defineModule({
       component: NoCollections,
       beforeEnter() {
         const collectionsStore = useCollectionsStore();
-        const { activeGroups } = useNavigation(ref(null));
+        // const { activeGroups } = useNavigation(ref(null));
         if (collectionsStore.visibleCollections.length === 0) return;
-        const rootCollections = orderBy(
-          collectionsStore.visibleCollections.filter((collection) => {
-            return isNil(collection?.meta?.group);
-          }),
-          ["meta.sort", "collection"]
-        );
+        // const rootCollections = orderBy(
+        //   collectionsStore.visibleCollections.filter((collection) => {
+        //     return isNil(collection?.meta?.group);
+        //   }),
+        //   ["meta.sort", "collection"]
+        // );
         const { data } = useLocalStorage("teach-last-accessed-collection");
         if (
           data.value &&
@@ -109,28 +109,30 @@ export default defineModule({
         ) {
           return `/teach/${data.value}`;
         }
-        let firstCollection = findFirst(rootCollections);
+        // let firstCollection = findFirst(rootCollections);
         // If the first collection couldn't be found in any open collections, try again but with closed collections
-        firstCollection = findFirst(rootCollections, { skipClosed: false });
-        if (!firstCollection) return;
+        // firstCollection = findFirst(rootCollections, { skipClosed: false });
+        // if (!firstCollection) return;
+        let firstCollection = { collection: "course" };
+
         return `/teach/${firstCollection.collection}`;
-        function findFirst(collections: Collection[], { skipClosed } = { skipClosed: true }): Collection | void {
-          for (const collection of collections) {
-            if (collection.schema) {
-              return collection;
-            }
-            // Don't default to a collection in a currently closed folder
-            if (skipClosed && activeGroups.value.includes(collection.collection) === false) continue;
-            const children = orderBy(
-              collectionsStore.visibleCollections.filter((childCollection) => {
-                return collection.collection === childCollection.meta?.group;
-              }),
-              ["meta.sort", "collection"]
-            );
-            const first = findFirst(children);
-            if (first) return first;
-          }
-        }
+        // function findFirst(collections: Collection[], { skipClosed } = { skipClosed: true }): Collection | void {
+        //   for (const collection of collections) {
+        //     if (collection.schema) {
+        //       return collection;
+        //     }
+        //     // Don't default to a collection in a currently closed folder
+        //     if (skipClosed && activeGroups.value.includes(collection.collection) === false) continue;
+        //     const children = orderBy(
+        //       collectionsStore.visibleCollections.filter((childCollection) => {
+        //         return collection.collection === childCollection.meta?.group;
+        //       }),
+        //       ["meta.sort", "collection"]
+        //     );
+        //     const first = findFirst(children);
+        //     if (first) return first;
+        //   }
+        // }
       },
     },
     {

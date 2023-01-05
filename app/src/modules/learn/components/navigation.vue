@@ -90,17 +90,19 @@ export default defineComponent({
 			// console.log('XXX shownCollections', shownCollections);
 
 			let collections = [];
-			for (let i = shownCollections.length - 1; i >= 0; i--) {
+			let collectionUsed: any = {
+				"course": "Courses",
+				"course_enrollment": "Enrolled Courses",
+				"lesson_enrollment": "Enrolled Lessons"
+			};
+			for (let i = 0; i < shownCollections.length; i++) {
 				let collection = shownCollections[i];
-				if (collection.collection === 'ws_learn') {
-					collection.name = "Website";
-					collections.push(collection);
-				}
-				else if (collection.collection === 'ws_page') {
-					collection.name = "Website Page";
+				if (collectionUsed[collection.collection]) {
+					collection.name = collectionUsed[collection.collection];
 					collections.push(collection);
 				}
 			}
+
 			return collections;
 			// return orderBy(
 			// 	shownCollections.filter((collection) => {

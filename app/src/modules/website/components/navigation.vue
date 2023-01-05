@@ -90,14 +90,14 @@ export default defineComponent({
 			// console.log('XXX shownCollections', shownCollections);
 
 			let collections = [];
+			let collectionUsed: any = {
+				"ws_website": "Website",
+				"ws_page": "Website Page"
+			};
 			for (let i = shownCollections.length - 1; i >= 0; i--) {
 				let collection = shownCollections[i];
-				if (collection.collection === 'ws_website') {
-					collection.name = "Website";
-					collections.push(collection);
-				}
-				else if (collection.collection === 'ws_page') {
-					collection.name = "Website Page";
+				if (collectionUsed[collection.collection]) {
+					collection.name = collectionUsed[collection.collection];
 					collections.push(collection);
 				}
 			}

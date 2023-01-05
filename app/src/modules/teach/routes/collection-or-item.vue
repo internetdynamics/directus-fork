@@ -52,7 +52,7 @@ export default defineComponent({
 			(newParams) => {
 				if (newParams.collection && data.value !== newParams.collection) {
           let path = ''+route.path;
-          let module = path.substring(1, 8);
+		  let module = path.split('/')[1];
 
           if (module === 'teach') {
             data.value = newParams.collection;
