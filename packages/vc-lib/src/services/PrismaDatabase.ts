@@ -395,7 +395,7 @@ export class PrismaDatabase extends BaseDatabase implements IDatabase {
   }
 
   async getTableNames (pattern?: string) {
-    console.log("PrismaDatabase.getTableNames(%s)", pattern);
+    // console.log("PrismaDatabase.getTableNames(%s)", pattern);
     let tableNames: string[] = [];
     let regexp;
     if (pattern) {
