@@ -16,7 +16,7 @@
 		"dev": "pnpm -r dev",
 		"dev:api": "pnpm --filter directus dev",
 		"dev:app": "pnpm --filter @directus/app dev",
-		"dev:vclib": "pnpm --filter vc-lib dev",
+		"dev:vc-lib": "pnpm --filter vc-lib dev",
 		"build": "pnpm -r build",
 		"build:api": "pnpm --filter directus build",
 		"build:app": "pnpm --filter @directus/app build",
