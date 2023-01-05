@@ -136,6 +136,7 @@ router.post(
 		// let role = accountability?.role;
 		let isAdmin = accountability?.admin;
 		let gid = parseInt(req.params.gid, 10);
+		let gidStr = "" + gid;
 
 		if (userId) {
 			let now = new Date();
@@ -194,16 +195,16 @@ router.post(
 				.update({
 					currentGroupId: gid,
 					currentGroupRoleId: userAuth.groupRoleId,
-					currentGroupId1: groupRoleId <= 1 ? gid : null,
-					currentGroupId2: groupRoleId <= 2 ? gid : null,
-					currentGroupId3: groupRoleId <= 3 ? gid : null,
-					currentGroupId4: groupRoleId <= 4 ? gid : null,
-					currentGroupId5: groupRoleId <= 5 ? gid : null,
-					currentGroupId6: groupRoleId <= 6 ? gid : null,
-					currentGroupId7: groupRoleId <= 7 ? gid : null,
-					currentGroupId8: groupRoleId <= 8 ? gid : null,
-					currentGroupId9: groupRoleId <= 9 ? gid : null,
-					currentGroupId10: groupRoleId <= 10 ? gid : null,
+					currentGroupId1: groupRoleId <= 1 ? gidStr : null,
+					currentGroupId2: groupRoleId <= 2 ? gidStr : null,
+					currentGroupId3: groupRoleId <= 3 ? gidStr : null,
+					currentGroupId4: groupRoleId <= 4 ? gidStr : null,
+					currentGroupId5: groupRoleId <= 5 ? gidStr : null,
+					currentGroupId6: groupRoleId <= 6 ? gidStr : null,
+					currentGroupId7: groupRoleId <= 7 ? gidStr : null,
+					currentGroupId8: groupRoleId <= 8 ? gidStr : null,
+					currentGroupId9: groupRoleId <= 9 ? gidStr : null,
+					currentGroupId10: groupRoleId <= 10 ? gidStr : null,
 				});
 				console.log("XXX update directus_user result", result);
 			}
