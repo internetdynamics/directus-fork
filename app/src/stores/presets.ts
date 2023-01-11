@@ -293,8 +293,10 @@ export const usePresetsStore = defineStore({
 					user: userID,
 				});
 			}
-
-			if (preset.user !== userID) {
+			else if (!preset.user && !preset.role) {
+				return({ id: preset.id });
+			}
+			else if (preset.user !== userID) {
 				if ('id' in preset) delete preset.id;
 
 				return await this.create({
