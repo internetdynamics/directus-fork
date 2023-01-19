@@ -646,7 +646,7 @@ export class PrismaSchemaFile {
 
   printTableDiff(prevTableDef: PrismaTableDef, tableDef: PrismaTableDef) {
     console.log("printTableDef(%s [%s], %s [%s])", prevTableDef.name, prevTableDef.fields?.length, tableDef.name, tableDef.fields?.length);
-    this.printNativeTableDef(tableDef);
+    // this.printNativeTableDef(tableDef);
     let diff = 0;
     let buf = `Table: ${tableDef.name}`;
     // console.log("{");

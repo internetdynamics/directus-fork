@@ -9,7 +9,7 @@ import { exec } from 'child_process';
 import { PrismaSchemaFile, PrismaTableDef, PrismaColumnDef } from '../classes/PrismaSchemaFile';
 import { DirectusColumnDef, DirectusSchema, DirectusTableDef } from '../classes/DirectusSchema';
 import printf from 'printf';
-// import * as lodash from 'lodash';
+import * as lodash from 'lodash';
 
 let db: IDatabase = new PrismaDatabase() as IDatabase;
 
@@ -39,11 +39,19 @@ let appOptionDefs = {
     description: "Regenerate Prisma models when export_schema (default=1)",
     type: "integer",
   },
+  s3: {
+    description: "Files are on S3 rather than the file system",
+  },
+  schemaName: {
+    description: "Schema name for tables",
+  },
   show_sql: {
-    description: "Show the SQL statements"
+    description: "Show the SQL statements",
+    type: "integer",
   },
   verbose: {
-    description: "Print diagnostic statements"
+    description: "Print diagnostic statements",
+    type: "integer"
   }
 };
 
@@ -60,9 +68,11 @@ let appOptions = {
   dirname: "data",
   filedate: "dev",     // "prod" for production
   fileext: "json",
-  clobber: 0,
+  clobber: 1,
   update: 0,
   regen: 1,
+  s3: 0,
+  schemaName: "vc_server",
   show_sql: 0,
   verbose: 1,
   args: [],
@@ -95,6 +105,9 @@ function printUsage () {
 
 new ArgvOptionParser(appOptions, appOptionDefs);
 
+if (appOptions.args.length > 0 && appOptions.args[0].match(/^import/)) {
+  appOptions.clobber = 1;
+}
 if (appOptions.filedate && appOptions.dirname) {
   if (!appOptions.clobber) {
     let dirs = fs.readdirSync(appOptions.dirname);
@@ -139,11 +152,17 @@ class Main {
     "directus_fields": { updateKeys: [ "collection", "field" ] },      // collection, field             (not enforced)
     "directus_relations": { updateKeys: [ "many_collection", "many_field" ] },   // many_collection, many_field   (not enforced)
 
-    "directus_users": { updateKeys: [ "email" ] },       // email                         (AK)
+    "directus_users": {
+      updateKeys: [ "email" ],
+      columns: [ "id", "first_name", "last_name", "email" ],
+    },       // email                         (AK)
     "directus_shares": { updateKeys: [ "name", "collection", "item", "role" ] },      // name, collection, item, role  (not enforced)
 
     "directus_roles": { updateKeys: [ "id" ] },       // id (but check for name dups)  (PK)
-    "directus_permissions": { updateKeys: [ "role", "collection", "actions", "presets", "fields" ] }, // role, collection, actions, presets, fields   (not enforced)
+    "directus_permissions": {
+      updateKeys: [ "role", "collection", "action" ],
+      columns: [ "role","collection","action","permissions","validation","fields" ],
+    }, // role, collection, actions, presets, fields   (not enforced)
 
     "directus_folders": { updateKeys: [ "name", "parent" ] },     // name, parent                  (not enforced)
     "directus_files": { updateKeys: [ "id" ] },       // id (but check for folder/filename_disk dups) (PK)
@@ -160,16 +179,54 @@ class Main {
     // "directus_operations": { updateKeys: [ "id" ] },// ???
     // "directus_sessions": { updateKeys: [ "id" ] },  // durations a user had a session open
 
+    "group_role": { updateKeys: [ "id" ] },
+    "group_type": { updateKeys: [ "id" ] },
+    // "relationship_type": { updateKeys: [ "id" ] },
     "group": { updateKeys: [ "id" ] },
     "group_memb": { updateKeys: [ "id" ] },
-    // "donation": { updateKeys: [ "id" ] },
-    // "project": { updateKeys: [ "id" ] },
+    // "group_relationship": { updateKeys: [ "id" ] },
+    // "user_relationship": { updateKeys: [ "id" ] },
 
     "ws_website": { updateKeys: [ "id" ] },
     "ws_link": { updateKeys: [ "id" ] },
     "ws_page": { updateKeys: [ "id" ] },
     "ws_section": { updateKeys: [ "id" ] },
     "ws_section_item": { updateKeys: [ "id" ] },
+
+    "donation": { updateKeys: [ "id" ], perms: {
+      groupId: [ 10, 3, 3, 1, 1 ],
+    } },
+    "project": { updateKeys: [ "id" ], perms: {
+      groupId: [ 3, 8, 4, 3, 3 ],
+    } },
+    "acctg_account": { updateKeys: [ "id" ] },
+    "fin_account": { updateKeys: [ "id" ] },
+    "fin_transaction": { updateKeys: [ "id" ] },
+
+    "course": { updateKeys: [ "id" ], perms: {
+      groupId: [ 4, 7, 4, 3, 7 ],
+      // contains: ["lessons"],
+    } },
+    "lesson": { updateKeys: [ "id" ], perms: {
+      groupId: [ 4, 7, 4, 4, 7 ],
+      // contains: ["lessonSections"],
+    } },
+    "lesson_section": { updateKeys: [ "id" ], perms: {
+      groupId: [ 4, 7, 4, 4, 1 ],
+      // contains: ["lessonQuestions"],
+    } },
+    "lesson_question": { updateKeys: [ "id" ], perms: {
+      groupId: [ 4, 7, 4, 4, 1 ],
+      // contains: ["lessonAnswerOptions"],
+    } },
+    "lesson_answer_option": { updateKeys: [ "id" ], perms: {
+      groupId: [ 4, 7, 4, 4, 1 ],
+    } },
+    "scheduled_course": { updateKeys: [ "id" ] },
+    "scheduled_lesson": { updateKeys: [ "id" ] },
+    "course_enrollment": { updateKeys: [ "id" ] },
+    "lesson_enrollment": { updateKeys: [ "id" ] },
+    "lesson_answer": { updateKeys: [ "id" ] },
   };
 
   async run () {
@@ -222,6 +279,7 @@ class Main {
     else if (op === "import_data")        { await this.import_data(db, appOptions); }
     // files copied to /api/uploads directory (while imports made to directus_files)
     else if (op === "import_files")       { await this.import_files(db, appOptions); }
+    else if (op === "perms")              { await this.perms(db, appOptions); }
     else if (op === "magic") { await this.magic(db, appOptions); }
     else if (op === "printf") {  // files copied to /api/uploads directory (while updates made to directus_files)
       await this.testPrintf(db, appOptions);
@@ -263,16 +321,17 @@ class Main {
     let defaultSchemaFile = new PrismaSchemaFile(defaultSchemaPathname);
     currentSchemaFile.printDiffs(defaultSchemaFile);
 
-    if (appOptions.clobber || !fs.existsSync(exportSchemaPathname)) {
-      console.log("Copying Database Schema to %s", exportSchemaPathname);
-      await fsPromises.copyFile(currentSchemaPathname, exportSchemaPathname);
-      if (appOptions.regen && exportSchemaPathname === defaultSchemaPathname) {
+    await fsPromises.copyFile(currentSchemaPathname, exportSchemaPathname);
+    if (appOptions.clobber) {
+      console.log("Copying Database Schema to %s", defaultSchemaPathname);
+      await fsPromises.copyFile(currentSchemaPathname, defaultSchemaPathname);
+      if (appOptions.regen) {
         console.log("Regenerating Prisma Client [pnpx prisma generate]...");
         console.log("> (Note: use the --regen=0 option to skip this step)");
         await this.exec("pnpx prisma generate");
       }
       else {
-        console.log("Skipped regenerating Prisma Client.");
+        console.log("Skipped regenerating Prisma Client. (Use --regen=1 to regen Prisma Client)");
       }
     }
     // else {
@@ -291,40 +350,84 @@ class Main {
 
   async export_data (db: IDatabase, options: any) {
     console.log("export_data");
-    let globalVals: any = {};
-    for (let tableName of ["directus_collections"]) {
+    let tableNames: string[];
+    if (options.table && typeof(options.table) === "string") {
+      tableNames = options.table.split(/,/);
+    }
+    else {
+      tableNames = Object.keys(this.migrationTables);
+    }
+    for (let tableName of tableNames) {
       let pathname = fmgr.makeExportPathname(tableName, options);
-      let json = await fsPromises.readFile(pathname,"utf8");
-      let objects = JSON.parse(json);
-      if (objects && objects.length) {
-        let columns = Object.keys(objects[0]);
-
-        let errors = [];
-        let warnings = [];
-        let notices = [];
-        options['errors'] = errors;
-        options['warnings'] = warnings;
-        options['notices'] = notices;
-
-        options.updateKeys = this.migrationTables[tableName].updateKeys;
-        await db.storeObjects(tableName, columns, objects, globalVals, options);
-        delete options.updateKeys;
-
-        for (let msg of notices) {
-          console.log("Notice: ", msg);
-        }
-        for (let msg of warnings) {
-          console.log("Warning:", msg);
-        }
-        for (let msg of errors) {
-          console.log("Error:  ", msg);
-        }
+      try {
+        let rows = await db.getObjects(tableName);
+        let data = JSON.stringify(
+          rows,
+          (key, value) => { return(typeof value === 'bigint' ? value.toString() : value); },
+          2
+        );
+        // console.log("data", data);
+        fs.writeFileSync(pathname, data);
+        console.log("Exported %s rows to %s", rows.length, pathname);
+      }
+      catch (err) {
+        console.log("ERROR Exporting %s: %s", pathname, err.msg);
       }
     }
   }
 
   async export_files (db: IDatabase, options: any) {
     console.log("export_files");
+    if (options.s3) {
+      console.log("Exporting files from S3 not yet implemented");
+    }
+    else {
+      let uploadDir = options.uploadDir;
+      let exportFilesDir = options.dirname + "/files";
+      if (!fs.existsSync(exportFilesDir)) {
+        fs.mkdirSync(exportFilesDir);
+      }
+      let exportFiles = fs.readdirSync(exportFilesDir);
+      for (let file of exportFiles) {
+        fs.unlinkSync(exportFilesDir + "/" + file);
+      }
+
+      let allfiles = fs.readdirSync(uploadDir);
+      // console.log("allfiles", allfiles);
+      let files = [];
+      for (let file of allfiles) {
+        if (!file.match(/__/)) {
+          files.push(file);
+        }
+      }
+      let fileRows: any[] = await db.getObjects("directus_files");
+      let fileRowByFilename = db.makeObjectOfObjectsByKey(fileRows, "filename_disk");
+      // console.log("files", files);
+      let numFilesFoundInRows = 0;
+      let fileExistsByFilename: any = {};
+      for (let file of files) {
+        if (fileRowByFilename[file]) {
+          numFilesFoundInRows++;
+        }
+        else {
+          console.log("Notice: File [%s] on disk not found in database", file);
+        }
+        fileExistsByFilename[file] = 1;
+      }
+      console.log("numFiles %s on disk. found in db %s.", files.length, numFilesFoundInRows);
+      let numFilesFoundOnDisk = 0;
+      for (let row of fileRows) {
+        let file = row.filename_disk;
+        if (fileExistsByFilename[file]) {
+          numFilesFoundOnDisk++;
+          fs.linkSync(uploadDir + "/" + file, exportFilesDir + "/" + file);
+        }
+        else {
+          console.log("WARNING: File [%s] in database not found on disk", file);
+        }
+      }
+      console.log("numFileRows %s in db. found on disk %s.", fileRows.length, numFilesFoundOnDisk);
+    }
   }
 
   async import (db: IDatabase, options: any) {
@@ -363,12 +466,29 @@ class Main {
   async import_data (db: IDatabase, options: any) {
     console.log("import_data");
     let globalVals: any = {};
-    for (let tableName of ["directus_collections"]) {
+
+    let tableNames: string[];
+    if (options.table && typeof(options.table) === "string") {
+      tableNames = options.table.split(/,/);
+    }
+    else {
+      tableNames = Object.keys(this.migrationTables);
+    }
+
+    for (let tableName of tableNames) {
+      console.log("import_data table [%s]", tableName);
       let pathname = fmgr.makeExportPathname(tableName, options);
       let json = await fsPromises.readFile(pathname,"utf8");
       let objects = JSON.parse(json);
-      if (objects && objects.length) {
-        let columns = Object.keys(objects[0]);
+      let migrationTableDef = this.migrationTables[tableName];
+      if (!migrationTableDef) {
+        console.log("ERROR: Table [%s] not defined in program for migration", tableName);
+      }
+      else if (!objects || objects.length === 0) {
+        // console.log("WARNING: Table [%s] has no data to store", tableName);
+      }
+      else {
+        let columns = migrationTableDef.columns || Object.keys(objects[0]);
 
         let errors = [];
         let warnings = [];
@@ -378,6 +498,7 @@ class Main {
         options['notices'] = notices;
 
         options.updateKeys = this.migrationTables[tableName].updateKeys;
+        // console.log("XXX storeObjects() options %j", options);
         await db.storeObjects(tableName, columns, objects, globalVals, options);
         delete options.updateKeys;
 
@@ -396,6 +517,186 @@ class Main {
 
   async import_files (db: IDatabase, options: any) {
     console.log("import_files");
+  }
+
+  async perms (db: IDatabase, options: any) {
+    console.log("perms");
+    let directusSchema = new DirectusSchema();
+    await directusSchema.init(options);
+    let tables: string[];
+    if (!options.table) {
+      // tables = Object.keys(directusSchema.nativeTableDef);
+      tables = await directusSchema.getTableNames();
+    }
+    else {
+      tables = options.table.split(/,/);
+    }
+
+    let directusPermissions: any[] = [];
+    let specialField = {
+      "id": true,
+      "status": true,
+      "sort": true,
+      "user_created": true,
+      "date_created": true,
+      "user_updated": true,
+      "date_updated": true,
+      "groupId": true,
+      "userId": true,
+    };
+    let userRole = await db.getValue("directus_roles", { name: "User" }, "id");
+
+    for (let table of tables) {
+      let migrationDef = this.migrationTables[table];
+      if (migrationDef && migrationDef.perms) {
+        console.log("perms:", table);
+        let perms = migrationDef.perms;
+        let g = perms.groupId;
+        // let auto = perms.auto;
+        let tabdef = db.getNativeTableDef(table);
+        let dtabdef = directusSchema.getNativeTableDef(table);
+
+        let createFields: any = [];
+        let createPresets: any = {};
+        let createValidation: any = [];
+        let readPermissions: any = [];
+        let updatePermissions: any = [];
+        let updateFields: any = [];
+        let deletePermissions: any = [];
+        let sharePermissions: any = [];
+
+        for (let field in dtabdef.column) {
+          let fielddef = tabdef.field[field];
+          let dfielddef = dtabdef.column[field];
+          if (fielddef && fielddef.kind === "scalar") {
+            if (specialField[field]) {
+              if (field === "groupId") {
+                createPresets.groupId = "$CURRENT_USER.currentGroupId";
+                createValidation.push({"groupId":{"_eq":"$CURRENT_USER.currentGroupId"+g[0]}});
+                readPermissions.push({"groupId":{"_eq":"$CURRENT_USER.currentGroupId"+g[1]}});
+                updatePermissions.push({"groupId":{"_eq":"$CURRENT_USER.currentGroupId"+g[2]}});
+                deletePermissions.push({"groupId":{"_eq":"$CURRENT_USER.currentGroupId"+g[3]}});
+                sharePermissions.push({"groupId":{"_eq":"$CURRENT_USER.currentGroupId"+g[4]}});
+              }
+              else if (field === "userId" || field.match(/UserId$/)) {
+                createPresets[field] = "$CURRENT_USER";
+                let readPerm = {};
+                readPerm[field] = {"_eq":"$CURRENT_USER"};
+                readPermissions.push(readPerm);
+              }
+              else if (field === "status") {
+                createPresets.status = "published";
+                createFields.push(field);
+                updateFields.push(field);
+              }
+            }
+            else {
+              // if (table === "lesson") console.log("field [%s] %j", field, dfielddef);
+              // if (dfielddef.special === "m2o") {
+              //   // don't allow
+              // }
+              createFields.push(field);
+              updateFields.push(field);
+              if (field === "isPublic") {
+                createPresets.isPublic = false;
+                readPermissions.push({"isPublic":{"_eq":true}});
+              }
+            }
+          }
+          else if (!fielddef && dfielddef && dfielddef.special === "o2m") {
+            // console.log("field [%s] %j", field, dfielddef);
+            createFields.push(field);
+            updateFields.push(field);
+          }
+          else {
+            // console.log("field [%s] %j", field, fielddef);
+          }
+        }
+
+        createFields = (createFields && createFields.length > 0) ? createFields.join(",") : "*";
+        createValidation = (lodash.isEmpty(createValidation)) ? null : JSON.stringify({"_and":createValidation});
+        if (lodash.isEmpty(createPresets)) createPresets = null;
+        else createPresets = JSON.stringify(createPresets);
+        if (!readPermissions || readPermissions.length === 0) readPermissions = "{}";
+        else if (readPermissions.length === 1) readPermissions = JSON.stringify({"_and":readPermissions});
+        else readPermissions = JSON.stringify({"_and":[{"_or":readPermissions}]});
+        updateFields = createFields;
+        updatePermissions = JSON.stringify({"_and":updatePermissions});
+        deletePermissions = JSON.stringify({"_and":deletePermissions});
+        sharePermissions = JSON.stringify({"_and":sharePermissions});
+
+        // console.log("tabdef", tabdef);
+        // console.log("dtabdef", dtabdef);
+        directusPermissions.push({
+          collection: table,
+          role: userRole,
+          action: "create",
+          permissions: null,
+          validation: createValidation,
+          presets: createPresets,
+          fields: createFields,
+        });
+        directusPermissions.push({
+          collection: table,
+          role: userRole,
+          action: "read",
+          permissions: readPermissions,
+          validation: null,
+          presets: null,
+          fields: "*",
+        });
+        directusPermissions.push({
+          collection: table,
+          role: userRole,
+          action: "update",
+          permissions: updatePermissions,
+          validation: null,
+          presets: null,
+          fields: updateFields,
+        });
+        directusPermissions.push({
+          collection: table,
+          role: userRole,
+          action: "delete",
+          permissions: deletePermissions,
+          validation: null,
+          presets: null,
+          fields: null,
+        });
+        directusPermissions.push({
+          collection: table,
+          role: userRole,
+          action: "share",
+          permissions: sharePermissions,
+          validation: null,
+          presets: null,
+          fields: null,
+        });
+      }
+    }
+
+    let errors = [];
+    let warnings = [];
+    let notices = [];
+    options['errors'] = errors;
+    options['warnings'] = warnings;
+    options['notices'] = notices;
+
+    options.updateKeys = [ "role", "collection", "action" ];
+    let columns = [ "role", "collection", "action", "permissions", "validation", "presets", "fields" ];
+    // console.log("XXX storeObjects()", options);
+    await db.storeObjects("directus_permissions", columns, directusPermissions, {}, options);
+    delete options.updateKeys;
+
+    for (let msg of notices) {
+      console.log("Notice: ", msg);
+    }
+    for (let msg of warnings) {
+      console.log("Warning:", msg);
+    }
+    for (let msg of errors) {
+      console.log("Error:  ", msg);
+    }
   }
 
   async magic (db: IDatabase, options: any) {

@@ -2,7 +2,10 @@
 import * as lodash from 'lodash';
 
 import { ObjectLookup, ObjectArrayLookup, Scalar } from '../types';
-import { DBModelData, DBTableDefs, DBQueryFlags, DBTableDef, DBColumnDefs, DBColumnDef, DBRelationshipDef, DataOptions, StoreOptions } from '../classes/DBInterfaces';
+import {
+  DBModelData, DBTableDefs, DBQueryFlags, DBTableDef, DBColumnDefs, DBColumnDef, DBRelationshipDef,
+  DataOptions, StoreOptions
+} from '../classes/DBInterfaces';
 import { Config } from '../services/Config';
 
 export class BaseDatabase {
@@ -256,9 +259,10 @@ export class BaseDatabase {
     // let objects = await this.observeObjects(obs, tableName, params, columns, options);
 
     options.limit = 1;
-    // console.log("BaseDatabase.getObject(%s) BEFORE", tableName, params);
+    // console.log("BaseDatabase.getObject(%s) params %j", tableName, params);
     let objects = await this.getObjects(tableName, params, columns, options);
-    // console.log("BaseDatabase.getObject(%s) =>", tableName, params, lodash.clone(objects));
+    // if (typeof(params) === "object" && params["role"] === null) console.log("BaseDatabase.getObject(%s) => %j", tableName, lodash.clone(objects));
+    // console.log("BaseDatabase.getObject(%s) => 1 from %s", tableName, objects.length);
     if (!objects || objects.length === 0) {
       return(null);
     }
@@ -1301,7 +1305,7 @@ export class BaseDatabase {
     if (resultType === "number" || resultType === "timestamp") {
       if (typeof(value) === "string") { value = parseFloat(value); }
       else if (typeof(value) !== "number") { value = 0; }   // don't know what to do with this
-      if (value === NaN) { value = 0; }
+      if (isNaN(value)) { value = 0; }
     }
     else {  // assume "string"
       if (typeof(value) === "number") { value = ""+value; }
@@ -1419,7 +1423,7 @@ export class BaseDatabase {
   // #######################################################################3
   // THIS SHOULD BE SILENT (no console.log()).
   async storeObjects(tableName: string, columns: string[], rows: any[][], globalVals: any, options: StoreOptions) {
-    // console.log("Insight360ExtractLoader.loadRows()", pathname);
+    // console.log("ENTER BaseDatabase.storeObjects()", tableName);
     let verbose: number = options.verbose || 0;
     let showSql    = options.show_sql || 0;
     let notices    = options.notices  || [];
@@ -1430,8 +1434,6 @@ export class BaseDatabase {
     let numDataRows = 0;
     let numCols    = columns.length;
     let matches: string[];
-
-    if (verbose >= 3) console.log("DEBUG globalVals=%j", globalVals);
 
     if (!errors.length) {
       try {
@@ -1486,6 +1488,12 @@ export class BaseDatabase {
               }
             }
 
+            if (verbose >= 3) {
+              console.log();
+              console.log("--------------------------------------------");
+              console.log("TABLE %s", tableName);
+              console.log("DEBUG globalVals=%j", globalVals);
+            }
             if (verbose >= 4) console.log("DEBUG num columns [%s] : defined [%s]", columns.length, numDefinedColumns);
             if (columns.length !== numCols) {
               errors.push(`${tableName}: column names in header row don't cover the width of the spreadsheet`);
@@ -1521,6 +1529,7 @@ export class BaseDatabase {
                   let dataOk = true;
                   let params: any = {};
                   let physCols: string[] = [];
+                  let physDataCols: string[] = [];
                   let dbvals: any = {};
                   let changedVals: string = "";
                   rowDataOk[r] = dataOk;
@@ -1555,7 +1564,11 @@ export class BaseDatabase {
                     if (columnDefs[column] && this.findIndex(physCols, column) === -1) {
                       let val = vals[column];
                       if (val !== undefined && val !== null && val !== "") {
+                      // if (val !== undefined) {
                         physCols.push(column);
+                        if (this.findIndex(updateKeys, column) === -1) {
+                          physDataCols.push(column);
+                        }
                       }
                     }
                   }
@@ -1567,10 +1580,10 @@ export class BaseDatabase {
                       params[column] = vals[column];
                     }
                     // console.log("XXX table [%s] cols %j", tableName, physCols);
-                    // console.log("XXX params %j", params);
+                    // if (params.role === null) console.log("XXX params %j", params);
                     // console.log("XXX db=[%s]", this.constructor.name);
                     dbvals = await this.getObject(tableName, params, physCols, { showSql: (showSql >= 3 ? true : false) });
-                    // console.log("XXX dbvals %j", dbvals);
+                    // if (params.role === null) console.log("XXX dbvals %j", dbvals);
                     rowDbValues[r] = dbvals;
                     let rowDataChanged = false;
                     if (dbvals) {
@@ -1582,9 +1595,23 @@ export class BaseDatabase {
                           if (typeof(val) === "number" && typeof(dbval) === "string") {
                             dbval = parseFloat(dbval);
                           }
-                          else if (typeof(val) === "string" && typeof(dbval) === "number") {
-                            val = parseFloat(val);
+                          else if (typeof(val) === "string") {
+                            if (typeof(dbval) === "number") {
+                              val = parseFloat(val);
+                            }
+                            else if (typeof(dbval) === "object") {
+                              if      (dbval === null) dbval = "null";
+                              else if (dbval.constructor.name === "Date") dbval = dbval.toISOString();
+                              else    dbval = dbval.toString();
+                            }
+                            else if (typeof(dbval) === "bigint") {
+                              dbval = "" + dbval;
+                            }
                           }
+                          // if (column === "filesize") {
+                          //   console.log("XXX dbval [%s] [%s]", typeof(dbval), dbval);
+                          //   console.log("XXX val   [%s] [%s]", typeof(val), val);
+                          // }
                           if (dbval !== val) {
                             changedVals += ` ${column} [${dbval}] => [${val}]`;
                             rowDataChanged = true;
@@ -1598,12 +1625,13 @@ export class BaseDatabase {
                     }
                     if (verbose >= 3) {
                       if (verbose >= 5 || rowDataChanged) {
-                        console.log("XXX row[%s] ok[%j] params[%j] physCols[%j]", r, rowDataOk[r], params, physCols);
-                        console.log("XXX row[%s] %s    vals[%j]", r, (rowDataChanged ? "*" : " "), vals);
-                        console.log("XXX row[%s]    dbvals[%j]", r, dbvals);
+                        console.log("DATA  row[%s] ok[%j] params[%j] physCols[%j]", r, rowDataOk[r], params, physCols);
+                        console.log("DATA  row[%s] %s    vals[%j]", r, (rowDataChanged ? "*" : " "), vals);
+                        console.log("DATA  row[%s]    dbvals[%s]", r, JSON.stringify(dbvals, (key, value) => { return(typeof value === 'bigint' ? value.toString() : value); }));
                         if (verbose >= 4) {
-                          console.log("XXX row[%s]  changes: %s", r, changedVals || "<none>");
+                          console.log("DATA  row[%s]  changes: %s", r, changedVals || "<none>");
                         }
+                        console.log();
                       }
                     }
                     if (rowDataChanged) {
@@ -1618,7 +1646,14 @@ export class BaseDatabase {
                         // console.log("XXX 1 physCols %j", physCols);
                         this.reduceColsToPhysical(columnDefs, physCols);
                         // console.log("XXX 2 physCols %j", physCols);
-                        let ok = await this.insert(tableName, vals, physCols, { updateKeys: updateKeys, showSql: (showSql ? true : false) });
+                        let ok:any;
+                        // ok = await this.insert(tableName, vals, physCols, { updateKeys: updateKeys, showSql: (showSql ? true : false) });
+                        if (dbvals) {
+                          ok = await this.update(tableName, params, vals, physDataCols, { showSql: (showSql ? true : false), schemaName: options.schemaName });
+                        }
+                        else {
+                          ok = await this.insert(tableName, vals, physCols, { showSql: (showSql ? true : false), schemaName: options.schemaName });
+                        }
                         if (ok) numRowsLoaded++;
                       }
                       else if (showSql >= 2) {
@@ -1647,6 +1682,7 @@ export class BaseDatabase {
         errors.push(err.message);
       }
     }
+    // console.log("EXIT  BaseDatabase.storeObjects()", tableName);
   }
   
   public getUpdateKeys (tableDef: DBTableDef, columns: string[]): string[] {

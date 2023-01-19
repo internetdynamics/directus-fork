@@ -20,6 +20,7 @@ export interface StoreOptions {
   warnings?:      string[];
   errors?:        string[];
   verbose?:       number;
+  schemaName?:    string;
   show_sql?:      number;
 }
 

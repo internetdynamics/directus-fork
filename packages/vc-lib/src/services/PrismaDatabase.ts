@@ -3,7 +3,7 @@ import { Config } from './Config';
 import { DataOptions, DBTableDef } from '../classes/DBInterfaces';
 import { PrismaClient } from '@prisma/client';
 import * as lodash from 'lodash';
-import { BaseDatabase } from './BaseDatabase';
+import { SqlDatabase } from './SqlDatabase';
 import { IDatabase } from './IDatabase';
 
   // {"name":"id","kind":"scalar","isList":false,"isRequired":true,"isUnique":false,"isId":true,"isReadOnly":false,"hasDefaultValue":true,"type":"Int","default":{"name":"autoincrement","args":[]},"isGenerated":false,"isUpdatedAt":false}
@@ -78,7 +78,7 @@ export interface PrismaTableDefs {
   [tableName: string]: PrismaTableDef;
 }
 
-export class PrismaDatabase extends BaseDatabase implements IDatabase {
+export class PrismaDatabase extends SqlDatabase implements IDatabase {
   config: Config;
   prisma: PrismaClient;
   tableNames: string[];
@@ -287,7 +287,7 @@ export class PrismaDatabase extends BaseDatabase implements IDatabase {
 
     let objects: any[];
     if (!lodash.isEmpty(args)) {
-      if (verbose >= 7) console.log("PrismaDatabase.getObjects() args", args);
+      if (verbose >= 7 || options.show_sql) console.log("PrismaDatabase.getObjects() args", args);
       objects = await tab.findMany(args);
     }
     else {
@@ -295,6 +295,31 @@ export class PrismaDatabase extends BaseDatabase implements IDatabase {
       objects = await tab.findMany();
     }
     return(objects);
+  }
+
+  public executeSql(sql: string, options: DataOptions = {}) : Promise<object> {
+    let promise: Promise<object> = new Promise((resolve, reject) => {
+      this.prisma.$executeRawUnsafe(sql)
+      .then((nrows: number) => {
+        // console.log("executeSql", nrows);
+        resolve({ nrows: nrows });
+      })
+    });
+    return promise;
+  }
+
+  // when executing a single insert statement, return "insertId"
+  public async executeInsertSql(sql: string) : Promise<number> {
+    let result = await this.executeSql(sql);
+    return(result["insertId"])
+  }
+
+  // when executing an arbitrary DML (data manipulation language, aka insert, update, or delete), return "affectedRows"
+  public async executeDml(sql: string, options: DataOptions = {}) : Promise<number> {
+    let result;
+    result = await this.executeSql(sql, options);
+    // console.log("PrismaDatabase.executeDml() result", result);
+    return(result["changedRows"] || result["affectedRows"])
   }
 
   printRelations(nativeTableDef) {
@@ -333,7 +358,10 @@ export class PrismaDatabase extends BaseDatabase implements IDatabase {
     else if (typeof(params) === "object") {
       where = {};
       for (let param in params) {
-        if (typeof(params[param]) === "object") {
+        if (params[param] === null) {
+          where[param] = null;
+        }
+        else if (typeof(params[param]) === "object") {
           for (let op in params[param]) {
             if (this.columnOp[op]) {
               let value = params[param][op];
@@ -390,7 +418,7 @@ export class PrismaDatabase extends BaseDatabase implements IDatabase {
         }
       }
     }
-    // console.log("XXX PrismaDatabase.makeWhere() where", where);
+    // if (typeof(params) === "object" && params.role === null) console.log("XXX PrismaDatabase.makeWhere() where", where);
     return(whereUsed ? where : null);
   }
 
@@ -415,6 +443,10 @@ export class PrismaDatabase extends BaseDatabase implements IDatabase {
     let nativeTableDef: PrismaTableDef = this.nativeTableDef[tableName];
     // console.log("getNativeTableDef(%s)", tableName, nativeTableDef);
     return(nativeTableDef);
+  }
+
+  getNativeTableDefs () {
+    return(this.nativeTableDef);
   }
 
   getTableDef (tableName: string): DBTableDef {
@@ -461,6 +493,7 @@ export class PrismaDatabase extends BaseDatabase implements IDatabase {
             columnName: nativeColumnDef.name,
             alias: this.makeAlias(columnName, aliasUsed),
             type: type,
+            nativeColumn: nativeColumnDef.name,
           };
           tableDef.column[columnName] = columnDef;
         }
