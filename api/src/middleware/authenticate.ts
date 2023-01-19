@@ -45,28 +45,33 @@ export const handler = async (req: Request, res: Response, next: NextFunction) =
 	}
 
 	req.accountability = defaultAccountability;
-
+    // console.log("XXXXXX middleware/authenticate token", req.token);
 	if (req.token) {
 		if (isDirectusJWT(req.token)) {
 			const payload = verifyAccessJWT(req.token, env.SECRET);
-
-			req.accountability.share = payload.share;
-			req.accountability.share_scope = payload.share_scope;
-			req.accountability.user = payload.id;
-			req.accountability.role = payload.role;
-			req.accountability.admin = payload.admin_access === true || payload.admin_access == 1;
-			req.accountability.app = payload.app_access === true || payload.app_access == 1;
-		} else {
+			let userId = payload.id;
+			
 			// Try finding the user with the provided token
 			const user = await database
-				.select('directus_users.id', 'directus_users.role', 'directus_roles.admin_access', 'directus_roles.app_access')
-				.from('directus_users')
-				.leftJoin('directus_roles', 'directus_users.role', 'directus_roles.id')
-				.where({
-					'directus_users.token': req.token,
-					status: 'active',
-				})
-				.first();
+			.select(
+				'directus_users.id', 'directus_users.role',
+				'directus_users.currentGroupId',
+				'directus_users.currentGroupId1', 'directus_users.currentGroupId2',
+				'directus_users.currentGroupId3', 'directus_users.currentGroupId4',
+				'directus_users.currentGroupId5', 'directus_users.currentGroupId6',
+				'directus_users.currentGroupId7', 'directus_users.currentGroupId8',
+				'directus_users.currentGroupId9', 'directus_users.currentGroupId10',
+				'directus_roles.admin_access', 'directus_roles.app_access'
+			)
+			.from('directus_users')
+			.leftJoin('directus_roles', 'directus_users.role', 'directus_roles.id')
+			.where({
+				'directus_users.id': userId,
+				status: 'active',
+			})
+			.first();
+
+			// console.log("XXXXXX middleware/authenticate (JWT.id) user", user);
 
 			if (!user) {
 				throw new InvalidCredentialsException();
@@ -76,6 +81,44 @@ export const handler = async (req: Request, res: Response, next: NextFunction) =
 			req.accountability.role = user.role;
 			req.accountability.admin = user.admin_access === true || user.admin_access == 1;
 			req.accountability.app = user.app_access === true || user.app_access == 1;
+			// req.accountability.user = payload.id;
+			// req.accountability.role = payload.role;
+			// req.accountability.admin = payload.admin_access === true || payload.admin_access == 1;
+			// req.accountability.app = payload.app_access === true || payload.app_access == 1;
+			req.accountability.share = payload.share;
+			req.accountability.share_scope = payload.share_scope;
+			req.accountability.$CURRENT_USER = user;
+		} else {
+			// Try finding the user with the provided token
+			const user = await database
+			.select(
+				'directus_users.id', 'directus_users.role',
+				'directus_users.currentGroupId',
+				'directus_users.currentGroupId1', 'directus_users.currentGroupId2',
+				'directus_users.currentGroupId3', 'directus_users.currentGroupId4',
+				'directus_users.currentGroupId5', 'directus_users.currentGroupId6',
+				'directus_users.currentGroupId7', 'directus_users.currentGroupId8',
+				'directus_users.currentGroupId9', 'directus_users.currentGroupId10',
+				'directus_roles.admin_access', 'directus_roles.app_access'
+			)
+			.from('directus_users')
+			.leftJoin('directus_roles', 'directus_users.role', 'directus_roles.id')
+			.where({
+				'directus_users.token': req.token,
+				status: 'active',
+			})
+			.first();
+			// console.log("XXXXXX middleware/authenticate (token) user", user);
+
+			if (!user) {
+				throw new InvalidCredentialsException();
+			}
+
+			req.accountability.user = user.id;
+			req.accountability.role = user.role;
+			req.accountability.admin = user.admin_access === true || user.admin_access == 1;
+			req.accountability.app = user.app_access === true || user.app_access == 1;
+			req.accountability.$CURRENT_USER = user;
 		}
 	}
 
