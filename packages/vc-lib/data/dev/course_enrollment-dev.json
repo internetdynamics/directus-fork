@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "status": "published",
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-11T16:20:57.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupId": 3,
+    "courseId": 5,
+    "userId": "21ddb2b7-f8de-4da2-8b44-ca9874b50bc0",
+    "scheduledCourseId": null,
+    "startDate": null,
+    "lastProgressDate": null,
+    "completeDate": null,
+    "studentCourseScore": null
+  }
+]

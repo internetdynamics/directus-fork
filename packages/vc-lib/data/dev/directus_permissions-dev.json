@@ -184,10 +184,10 @@
     "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
     "collection": "directus_users",
     "action": "update",
-    "permissions": "{\"_and\":[{\"id\":{\"_eq\":\"$CURRENT_USER\"}}]}",
+    "permissions": "{}",
     "validation": "{}",
     "presets": null,
-    "fields": "first_name,phone,last_name,email,password,avatar,groupMembs,location,title,description,tags,preferences_divider,language,theme,tfa_secret,email_notifications,admin_divider,status,external_identifier,auth_data,last_page,last_access"
+    "fields": "*"
   },
   {
     "id": 21,
@@ -515,16 +515,16 @@
     "collection": "donation",
     "action": "create",
     "permissions": "{}",
-    "validation": "{}",
-    "presets": null,
-    "fields": "*"
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId10\"}}]}",
+    "presets": "{\"groupId\":\"$CURRENT_USER.currentGroupId\"}",
+    "fields": "donationStatus,donationDate,donationAmount,paymentType,donationMethod,donorEmail,donorName,donorAddress,donorPhone,donorUserId,advisingDonorUserId,receivedFinAccountId,projectFundAcctgAccountId,donationTransactionId,donorType,advisingDonorName,advisingDonorEmail"
   },
   {
     "id": 74,
     "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
     "collection": "donation",
     "action": "read",
-    "permissions": "{}",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId3\"}}]}",
     "validation": "{}",
     "presets": null,
     "fields": "*"
@@ -855,6 +855,436 @@
     "collection": "group",
     "action": "share",
     "permissions": "{\"_and\":[{\"id\":{\"_eq\":\"$CURRENT_USER.currentGroupId5\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 119,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "course",
+    "action": "create",
+    "permissions": null,
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "presets": "{\"status\":\"published\",\"groupId\":\"$CURRENT_USER.currentGroupId\",\"isPublic\":false}",
+    "fields": "status,courseTitle,courseDescription,isPublic,lessons"
+  },
+  {
+    "id": 120,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "course",
+    "action": "read",
+    "permissions": "{\"_and\":[{\"_or\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId7\"}},{\"isPublic\":{\"_eq\":true}}]}]}",
+    "validation": "{}",
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 121,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "course_enrollment",
+    "action": "read",
+    "permissions": "{\"_and\":[{\"_or\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}},{\"userId\":{\"_eq\":\"$CURRENT_USER\"}}]}]}",
+    "validation": "{}",
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 126,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "course",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "status,courseTitle,courseDescription,isPublic,lessons"
+  },
+  {
+    "id": 129,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "course_enrollment",
+    "action": "create",
+    "permissions": null,
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId9\"}}]}",
+    "presets": "{\"groupId\":\"$CURRENT_USER.currentGroupId\",\"userId\":\"$CURRENT_USER\",\"status\":\"published\"}",
+    "fields": "courseId,scheduledCourseId,status"
+  },
+  {
+    "id": 130,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson",
+    "action": "create",
+    "permissions": "{}",
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "presets": "{\"groupId\":\"$CURRENT_USER.currentGroupId\"}",
+    "fields": "courseId,lessonTitle,lessonDescription,courseDay,homeworkDescription,lessonWeight,lessonSections"
+  },
+  {
+    "id": 131,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson",
+    "action": "read",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId7\"}}]}",
+    "validation": "{}",
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 133,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": "{}",
+    "presets": null,
+    "fields": "courseId,lessonTitle,lessonDescription,courseDay,homeworkDescription,lessonWeight,lessonSections"
+  },
+  {
+    "id": 134,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson",
+    "action": "delete",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 135,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_answer",
+    "action": "delete",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 136,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_answer_option",
+    "action": "delete",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 137,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_question",
+    "action": "delete",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 138,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_section",
+    "action": "delete",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 139,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_enrollment",
+    "action": "delete",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId3\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 140,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_answer",
+    "action": "read",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId7\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "id,optionId,fileId,userId,questionId,pctCorrect,groupId,date_created,sort,user_updated,user_created,date_updated"
+  },
+  {
+    "id": 141,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_answer_option",
+    "action": "read",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId7\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 142,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_question",
+    "action": "read",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId7\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 143,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_section",
+    "action": "read",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId7\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 144,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_enrollment",
+    "action": "read",
+    "permissions": null,
+    "validation": null,
+    "presets": null,
+    "fields": "id,status,date_created,user_created,user_updated,groupId,date_updated,userId,lessonId,scheduledLessonId,lessonProgressDate,lessonStartDate,lessonCompleteDate,studentLessonScore"
+  },
+  {
+    "id": 145,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_answer",
+    "action": "create",
+    "permissions": null,
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "presets": "{\"groupId\":\"$CURRENT_USER.currentGroupId\",\"userId\":\"$CURRENT_USER\"}",
+    "fields": "fileId,questionId,pctCorrect,optionId"
+  },
+  {
+    "id": 146,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_answer_option",
+    "action": "create",
+    "permissions": null,
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "presets": "{\"groupId\":\"$CURRENT_USER.currentGroupId\"}",
+    "fields": "questionId,answer,isCorrect"
+  },
+  {
+    "id": 147,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_enrollment",
+    "action": "create",
+    "permissions": null,
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId6\"}}]}",
+    "presets": "{\"groupId\":\"$CURRENT_USER.currentGroupId\",\"userId\":\"$CURRENT_USER\"}",
+    "fields": "scheduledLessonId,lessonStartDate,lessonProgressDate,lessonCompleteDate,studentLessonScore"
+  },
+  {
+    "id": 148,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_question",
+    "action": "create",
+    "permissions": null,
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "presets": "{\"groupId\":\"$CURRENT_USER.currentGroupId\"}",
+    "fields": "lessonSectionId,questionType,question,questionWeight,randomizeAnswers,lessonAnswerOptions"
+  },
+  {
+    "id": 149,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_section",
+    "action": "create",
+    "permissions": null,
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "presets": "{\"groupId\":\"$CURRENT_USER.currentGroupId\"}",
+    "fields": "lessonId,sectionType,sectionSubtype,sectionTitle,sectionText,url,fileId,lessonQuestions"
+  },
+  {
+    "id": 150,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_answer",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "pctCorrect,fileId,optionId"
+  },
+  {
+    "id": 151,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_answer_option",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "questionId,answer,isCorrect"
+  },
+  {
+    "id": 152,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_enrollment",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "lessonStartDate,scheduledLessonId,lessonProgressDate,studentLessonScore,lessonCompleteDate"
+  },
+  {
+    "id": 153,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_question",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "lessonSectionId,questionType,question,questionWeight,randomizeAnswers,lessonAnswerOptions"
+  },
+  {
+    "id": 154,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_section",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "lessonId,sectionType,sectionSubtype,sectionTitle,sectionText,url,fileId,lessonQuestions"
+  },
+  {
+    "id": 156,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "course",
+    "action": "delete",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId3\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 157,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "course",
+    "action": "share",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId7\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 158,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson",
+    "action": "share",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId7\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 159,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_answer_option",
+    "action": "share",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId1\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 160,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_question",
+    "action": "share",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId1\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 161,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "lesson_section",
+    "action": "share",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId1\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 162,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "donation",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId3\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "donationStatus,donationDate,donationAmount,paymentType,donationMethod,donorEmail,donorName,donorAddress,donorPhone,donorUserId,advisingDonorUserId,receivedFinAccountId,projectFundAcctgAccountId,donationTransactionId,donorType,advisingDonorName,advisingDonorEmail"
+  },
+  {
+    "id": 163,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "donation",
+    "action": "delete",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId1\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 164,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "donation",
+    "action": "share",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId1\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 165,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "project",
+    "action": "create",
+    "permissions": null,
+    "validation": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId3\"}}]}",
+    "presets": "{\"status\":\"published\",\"groupId\":\"$CURRENT_USER.currentGroupId\"}",
+    "fields": "status,projectFundAcctgAccountId,projectName,projectDescription,deliverablesDescription,startDate,progressDate,completeDate,progressPctComplete,progressDescription,scheduledStartDate,scheduledCompleteDate"
+  },
+  {
+    "id": 166,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "project",
+    "action": "read",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId8\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "*"
+  },
+  {
+    "id": 167,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "project",
+    "action": "update",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId4\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": "status,projectFundAcctgAccountId,projectName,projectDescription,deliverablesDescription,startDate,progressDate,completeDate,progressPctComplete,progressDescription,scheduledStartDate,scheduledCompleteDate"
+  },
+  {
+    "id": 168,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "project",
+    "action": "delete",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId3\"}}]}",
+    "validation": null,
+    "presets": null,
+    "fields": null
+  },
+  {
+    "id": 169,
+    "role": "fa8e4478-88ea-44da-b9e7-a8cc9da184bb",
+    "collection": "project",
+    "action": "share",
+    "permissions": "{\"_and\":[{\"groupId\":{\"_eq\":\"$CURRENT_USER.currentGroupId3\"}}]}",
     "validation": null,
     "presets": null,
     "fields": null

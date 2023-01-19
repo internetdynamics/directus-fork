@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-04T23:23:01.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "finAccountCode": "BoA-VC-OP-9490",
+    "finAccountInstitution": "Bank of America",
+    "finAccountNumber": "XXXX-9490",
+    "finAccountNumberSuffix": "9490"
+  },
+  {
+    "id": 2,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-04T23:23:54.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "finAccountCode": "BoA-VC-R-9281",
+    "finAccountInstitution": "Bank of America",
+    "finAccountNumber": "XXXX-9281",
+    "finAccountNumberSuffix": "9281"
+  },
+  {
+    "id": 3,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-04T23:24:25.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "finAccountCode": "MS-VC-PM-2814",
+    "finAccountInstitution": "Morgan Stanley",
+    "finAccountNumber": "XXXX-2814",
+    "finAccountNumberSuffix": "2814"
+  },
+  {
+    "id": 4,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-05T01:52:47.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "finAccountCode": "MS-VC-PM-2814-MM",
+    "finAccountInstitution": "Morgan Stanley",
+    "finAccountNumber": "XXXX-2814",
+    "finAccountNumberSuffix": "2814-MM"
+  },
+  {
+    "id": 5,
+    "sort": null,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-05T01:53:41.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "finAccountCode": "MS-VC-PM-2814-ST",
+    "finAccountInstitution": "Morgan Stanley",
+    "finAccountNumber": "XXXX-2814",
+    "finAccountNumberSuffix": "2814-ST"
+  }
+]

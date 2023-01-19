@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "groupType": "small-group"
+  },
+  {
+    "id": 2,
+    "groupType": "church"
+  },
+  {
+    "id": 3,
+    "groupType": "teaching-ministry"
+  },
+  {
+    "id": 4,
+    "groupType": "teaching-institution"
+  },
+  {
+    "id": 5,
+    "groupType": "ministry-group"
+  },
+  {
+    "id": 6,
+    "groupType": "other"
+  }
+]

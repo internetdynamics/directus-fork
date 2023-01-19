@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1,
+    "sort": 1,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-05T01:40:15.000Z",
+    "user_updated": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_updated": "2023-01-05T02:21:37.000Z",
+    "acctgAccountCat": "Asset",
+    "acctgAccountType": null,
+    "acctgAccountName": "Funds Available",
+    "acctgAccountCode": "AS-CASH",
+    "groupId": 1
+  },
+  {
+    "id": 2,
+    "sort": 3,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-05T01:44:01.000Z",
+    "user_updated": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_updated": "2023-01-05T02:21:53.000Z",
+    "acctgAccountCat": "Equity",
+    "acctgAccountType": null,
+    "acctgAccountName": "Donations Received",
+    "acctgAccountCode": "EQ-DONATIONS-RECEIVED",
+    "groupId": 1
+  },
+  {
+    "id": 3,
+    "sort": 4,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-05T01:45:17.000Z",
+    "user_updated": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_updated": "2023-01-05T02:22:00.000Z",
+    "acctgAccountCat": "Equity",
+    "acctgAccountType": null,
+    "acctgAccountName": "Teaching Income",
+    "acctgAccountCode": "EQ-TEACHING-INCOME",
+    "groupId": 1
+  },
+  {
+    "id": 4,
+    "sort": 5,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-05T01:46:29.000Z",
+    "user_updated": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_updated": "2023-01-05T02:22:11.000Z",
+    "acctgAccountCat": "Equity",
+    "acctgAccountType": null,
+    "acctgAccountName": "Teaching Expenses",
+    "acctgAccountCode": "EQ-TEACHING-EXPENSE",
+    "groupId": 1
+  },
+  {
+    "id": 5,
+    "sort": 2,
+    "user_created": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_created": "2023-01-05T01:49:45.000Z",
+    "user_updated": "bef9aea9-7dc4-4844-9e1a-312e21d1d3dc",
+    "date_updated": "2023-01-05T02:21:46.000Z",
+    "acctgAccountCat": "Asset",
+    "acctgAccountType": null,
+    "acctgAccountName": "Funds Invested",
+    "acctgAccountCode": "AS-INVESTMENTS",
+    "groupId": 1
+  }
+]

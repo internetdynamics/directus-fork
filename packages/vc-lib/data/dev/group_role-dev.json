@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "groupRole": "superadmin"
+  },
+  {
+    "id": 2,
+    "groupRole": "owner"
+  },
+  {
+    "id": 3,
+    "groupRole": "admin"
+  },
+  {
+    "id": 4,
+    "groupRole": "media-admin"
+  },
+  {
+    "id": 5,
+    "groupRole": "member"
+  },
+  {
+    "id": 6,
+    "groupRole": "contributor"
+  },
+  {
+    "id": 7,
+    "groupRole": "guest"
+  },
+  {
+    "id": 8,
+    "groupRole": "friend"
+  },
+  {
+    "id": 9,
+    "groupRole": "follower"
+  },
+  {
+    "id": 10,
+    "groupRole": "no-relation"
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "sort": null,
+    "user_created": "21ddb2b7-f8de-4da2-8b44-ca9874b50bc0",
+    "date_created": "2023-01-19T17:32:49.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupId": 3,
+    "questionId": 2,
+    "answer": "Tom Brady",
+    "isCorrect": null
+  },
+  {
+    "id": 2,
+    "sort": null,
+    "user_created": "21ddb2b7-f8de-4da2-8b44-ca9874b50bc0",
+    "date_created": "2023-01-19T17:32:49.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupId": 3,
+    "questionId": 2,
+    "answer": "Peyton Manning",
+    "isCorrect": null
+  },
+  {
+    "id": 3,
+    "sort": null,
+    "user_created": "21ddb2b7-f8de-4da2-8b44-ca9874b50bc0",
+    "date_created": "2023-01-19T17:32:49.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupId": 3,
+    "questionId": 2,
+    "answer": "Johnny Unitas",
+    "isCorrect": null
+  },
+  {
+    "id": 4,
+    "sort": null,
+    "user_created": "21ddb2b7-f8de-4da2-8b44-ca9874b50bc0",
+    "date_created": "2023-01-19T17:32:49.000Z",
+    "user_updated": null,
+    "date_updated": null,
+    "groupId": 3,
+    "questionId": 2,
+    "answer": "Joe Montana",
+    "isCorrect": null
+  }
+]
