@@ -16,8 +16,9 @@ type ParseFilterContext = {
 export function parseFilter(
 	filter: Filter | null,
 	accountability: Accountability | null,
-	context: ParseFilterContext = {}
+	context: ParseFilterContext = null as any
 ): Filter | null {
+	if (!context) context = accountability as any;
 	if (filter === null || filter === undefined) {
 		return null;
 	}
