@@ -4,6 +4,7 @@ Modified Directus Source Files:
         pnpm-lock.yaml
 
         api/src/app.ts                   # rename "admin" to "app" (x4). enable more controllers (web service API endpoints).
+        api/src/middleware/authenticate.ts
         api/src/services/index.ts        # enable more services
         api/src/types/index.ts
         api/src/utils/get-user-auth.ts   # add groupId to signature of getUserAuth(userId, groupId)
@@ -15,7 +16,9 @@ Modified Directus Source Files:
         app/src/modules/content/index.ts
         app/src/stores/user.ts
 
+        packages/shared/src/types/accountability.ts
         packages/shared/src/types/users.ts
+        packages/shared/src/utils/parse-filter.ts
 
 
 New files:
