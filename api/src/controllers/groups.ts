@@ -137,12 +137,13 @@ router.post(
 		let isAdmin = accountability?.admin;
 		let gid = parseInt(req.params.gid, 10);
 		let gidStr = "" + gid;
+		// console.log("XXX 1 gid %s [%s] : gidStr %s [%s]", typeof(gid), gid, typeof(gidStr), gidStr);
 
 		if (userId) {
 			let now = new Date();
 			const database = getDatabase();
 			let userAuth = await getUserAuth(userId, gid);
-			console.log("XXX userAuth", userAuth);
+			// console.log("XXX userAuth", userAuth);
 
 			if (userAuth) {  // this should always be true as long as the user is correct
 				// if the group_memb is missing, should it be created?
@@ -173,7 +174,7 @@ router.post(
 					if (groupMemb.groupRoleId) {
 						let groupMembInsertResult = await database('group_memb')
 						.insert(groupMemb, ["id"]);
-						console.log("XXX insert group_memb groupMembInsertResult", groupMembInsertResult);
+						// console.log("XXX insert group_memb groupMembInsertResult", groupMembInsertResult);
 						userAuth.gid = gid;
 						userAuth.groupRoleId = groupMemb.groupRoleId;
 						groupRoleId = groupMemb.groupRoleId;
@@ -188,23 +189,24 @@ router.post(
 					.update({
 						'lastAccessedDate': now,
 					});
-					console.log("XXX update group_memb result", groupMembUpdateResult);
+					// console.log("XXX update group_memb result", groupMembUpdateResult);
 				}
+				// console.log("XXX 2 groupRoleId %s [%s] :  gid %s [%s] : gidStr %s [%s]", typeof(groupRoleId), groupRoleId, typeof(gid), gid, typeof(gidStr), gidStr);
 				let result = await database('directus_users')
 				.where('id', '=', userId)
 				.update({
 					currentGroupId: gid,
 					currentGroupRoleId: userAuth.groupRoleId,
-					currentGroupId1: groupRoleId <= 1 ? gidStr : null,
-					currentGroupId2: groupRoleId <= 2 ? gidStr : null,
-					currentGroupId3: groupRoleId <= 3 ? gidStr : null,
-					currentGroupId4: groupRoleId <= 4 ? gidStr : null,
-					currentGroupId5: groupRoleId <= 5 ? gidStr : null,
-					currentGroupId6: groupRoleId <= 6 ? gidStr : null,
-					currentGroupId7: groupRoleId <= 7 ? gidStr : null,
-					currentGroupId8: groupRoleId <= 8 ? gidStr : null,
-					currentGroupId9: groupRoleId <= 9 ? gidStr : null,
-					currentGroupId10: groupRoleId <= 10 ? gidStr : null,
+					currentGroupId1: groupRoleId <= 1 ? gid : 0,
+					currentGroupId2: groupRoleId <= 2 ? gid : 0,
+					currentGroupId3: groupRoleId <= 3 ? gid : 0,
+					currentGroupId4: groupRoleId <= 4 ? gid : 0,
+					currentGroupId5: groupRoleId <= 5 ? gid : 0,
+					currentGroupId6: groupRoleId <= 6 ? gid : 0,
+					currentGroupId7: groupRoleId <= 7 ? gid : 0,
+					currentGroupId8: groupRoleId <= 8 ? gid : 0,
+					currentGroupId9: groupRoleId <= 9 ? gid : 0,
+					currentGroupId10: groupRoleId <= 10 ? gid : 0,
 				});
 				console.log("XXX update directus_user result", result);
 			}
