@@ -421,16 +421,16 @@ model directus_users {
   currentGroupId                                                         Int?                     @db.UnsignedInt
   currentGroupRoleId                                                     Int?                     @db.UnsignedInt
   sysRoleId                                                              Int?                     @db.UnsignedInt
-  currentGroupId1                                                        String?                  @db.VarChar(12)
-  currentGroupId2                                                        String?                  @db.VarChar(12)
-  currentGroupId3                                                        String?                  @db.VarChar(12)
-  currentGroupId4                                                        String?                  @db.VarChar(12)
-  currentGroupId5                                                        String?                  @db.VarChar(12)
-  currentGroupId6                                                        String?                  @db.VarChar(12)
-  currentGroupId7                                                        String?                  @db.VarChar(12)
-  currentGroupId8                                                        String?                  @db.VarChar(12)
-  currentGroupId9                                                        String?                  @db.VarChar(12)
-  currentGroupId10                                                       String?                  @db.VarChar(12)
+  currentGroupId1                                                        Int?
+  currentGroupId2                                                        Int?
+  currentGroupId3                                                        Int?
+  currentGroupId4                                                        Int?
+  currentGroupId5                                                        Int?
+  currentGroupId6                                                        Int?
+  currentGroupId7                                                        Int?
+  currentGroupId8                                                        Int?
+  currentGroupId9                                                        Int?
+  currentGroupId10                                                       Int?
   acctg_account_acctg_account_user_createdTodirectus_users               acctg_account[]          @relation("acctg_account_user_createdTodirectus_users")
   acctg_account_acctg_account_user_updatedTodirectus_users               acctg_account[]          @relation("acctg_account_user_updatedTodirectus_users")
   course_course_user_createdTodirectus_users                             course[]                 @relation("course_user_createdTodirectus_users")
@@ -978,7 +978,6 @@ model fin_transaction {
 
 model lesson {
   id                                                 Int                 @id @default(autoincrement()) @db.UnsignedInt
-  status                                             String              @default("draft") @db.VarChar(255)
   sort                                               Int?
   user_created                                       String?             @db.Char(36)
   date_created                                       DateTime?           @db.Timestamp(0)
@@ -1007,7 +1006,6 @@ model lesson {
 
 model lesson_answer {
   id                                                        Int                   @id @default(autoincrement()) @db.UnsignedInt
-  status                                                    String                @default("draft") @db.VarChar(255)
   sort                                                      Int?
   user_created                                              String?               @db.Char(36)
   date_created                                              DateTime?             @db.Timestamp(0)
@@ -1038,7 +1036,6 @@ model lesson_answer {
 
 model lesson_answer_option {
   id                                                               Int              @id @default(autoincrement()) @db.UnsignedInt
-  status                                                           String           @default("draft") @db.VarChar(255)
   sort                                                             Int?
   user_created                                                     String?          @db.Char(36)
   date_created                                                     DateTime?        @db.Timestamp(0)
@@ -1092,7 +1089,6 @@ model lesson_enrollment {
 
 model lesson_question {
   id                                                          Int                    @id @default(autoincrement()) @db.UnsignedInt
-  status                                                      String                 @default("draft") @db.VarChar(255)
   sort                                                        Int?
   user_created                                                String?                @db.Char(36)
   date_created                                                DateTime?              @db.Timestamp(0)
@@ -1119,7 +1115,6 @@ model lesson_question {
 
 model lesson_section {
   id                                                         Int               @id @default(autoincrement()) @db.UnsignedInt
-  status                                                     String            @default("draft") @db.VarChar(255)
   sort                                                       Int?
   user_created                                               String?           @db.Char(36)
   date_created                                               DateTime?         @db.Timestamp(0)
