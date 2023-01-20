@@ -22,6 +22,7 @@
 		"build:app": "pnpm --filter @directus/app build",
 		"start:api": "pnpm --filter directus start",
 		"start:app": "pnpm --filter @directus/app start",
+		"start:website": "pnpm --filter website start",
 		"test:e2e": "jest tests -c tests/jest.config.js",
 		"test:e2e:watch": "jest tests -c tests/jest.config.js --watch",
 		"posttest:e2e:watch": "ts-node --project ./tests/tsconfig.json --transpile-only ./tests/setup/teardown.ts",
